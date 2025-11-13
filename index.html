@@ -1,944 +1,967 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RIVERFLOW ADMIN - Página Demo</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        /* Tipografía */
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Roboto:wght@400;500;700&display=swap');
-        body {
-            font-family: 'Roboto', sans-serif;
-        }
-        h1, h2, h3 {
-            font-family: 'Montserrat', sans-serif;
-        }
-
-        /* Paleta Elegante: Fondo #1A1A1A, Acento Principal #0B5345 (Verde Militar), Dorado #FFD700 */
-
-        .bg-main {
-            background-color: #1A1A1A;
-        }
-        .text-primary-accent {
-            color: #0B5345;
-        }
-        .bg-primary-accent {
-            background-color: #0B5345;
-        }
-        .border-primary-accent {
-            border-color: #0B5345;
-        }
-        /* Ajuste para el dorado/amarillo quemado */
-        .text-gold {
-            color: #D4AF37; /* Un dorado más oscuro y quemado */
-        }
-        .bg-gold {
-            background-color: #D4AF37;
-        }
-        .border-gold {
-            border-color: #D4AF37;
-        }
-        .bg-success {
-            background-color: #2ECC71; /* Verde más claro para acciones de éxito */
-        }
-        .bg-info {
-            background-color: #3B82F6; /* Azul para acciones de Re-Buy */
-        }
-        .text-info {
-            color: #3B82F6;
-        }
-        .text-error {
-            color: #EF4444; /* Rojo para acciones de error/salida */
-        }
-        .bg-error {
-            background-color: #EF4444;
-        }
-
-
-        /* Estilos de Pestañas */
-        .tab-btn {
-            border-bottom: 4px solid transparent;
-            color: #B0B0B0;
-            transition: all 0.3s ease;
-            font-family: 'Montserrat', sans-serif;
-        }
-        .tab-btn:hover {
-            color: #D4AF37; /* Usar el nuevo dorado */
-        }
-        .tab-btn.active {
-            border-color: #0B5345; /* Línea verde oscuro */
-            color: #D4AF37; /* Texto dorado */
-            background-color: #242424;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        html {
-            scroll-behavior: smooth;
-        }
-
-        /* Estilos del Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 100;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.8);
-            backdrop-filter: blur(5px);
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background-color: #242424;
-            padding: 30px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border: 1px solid #0B5345;
-            position: relative; /* Para que el watermark dentro sea relativo a este */
-        }
-        .modal-content .watermark-text {
-            font-size: 30px; /* Ajuste para el modal */
-            opacity: 0.1;
-            transform: rotate(-10deg);
-        }
-
-
-        /* Estilo para la tabla de jugadores */
-        .table-player-row > td {
-            padding: 0.75rem 0.5rem;
-        }
-        @media (min-width: 768px) {
-            .table-player-row > td {
-                padding: 1rem 1rem;
-            }
-        }
-
-        /* Estilo de Marca de Agua (Watermark) */
-        .watermark-container {
-            position: relative;
-            overflow: hidden;
-        }
-        .watermark-text {
-            content: "RIVERFLOW ADMIN - AndresBG";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            opacity: 0.05; /* Muy sutil */
-            font-size: 4vw; /* Se ajusta al tamaño de la pantalla */
-            font-family: 'Montserrat', sans-serif;
-            color: #D4AF37; /* Usar el nuevo dorado */
-            transform: rotate(-15deg);
-            z-index: 1;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .watermark-text span {
-            display: inline-block;
-            margin: 20px 40px;
-        }
-
-    </style>
-</head>
-<body class="bg-main text-[#E0E0E0]">
-
-    <!-- INICIO DEL MODAL DE ACCIONES (BUY-IN, RE-BUY, CASH-OUT) -->
-<div id="action-modal" class="modal">
-        <div class="modal-content">
-             <!-- Marca de agua dentro del modal (visible solo en Buy-in para la personalización) -->
-            <div class="watermark-text">
-                <span>RIVERFLOW ADMIN</span>
-                <span>- AndresBG -</span>
-            </div>
-            
-            <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4 relative z-10">
-                <h2 id="modal-title" class="text-xl font-bold text-gold"></h2>
-                <button onclick="closeModal()" class="text-[#B0B0B0] hover:text-white text-2xl leading-none">&times;</button>
-            </div>
-
-            <div class="space-y-4 relative z-10">
-                <!-- Selector de Jugador (Visible solo en Buy-in para nuevos) -->
-<div id="player-select-container">
-                    <label for="jugador-select" class="text-sm text-[#B0B0B0] block">Jugador</label>
-                    <select id="jugador-select" class="w-full p-3 rounded-lg bg-[#1A1A1A] border border-gray-700 text-white focus:border-primary-accent">
-                        <option>Silvia Ruiz</option>
-                        <option>Andres Lopez</option>
-                        <option selected>Jugador Nuevo</option>
-                    </select>
-                </div>
-
-                <!-- Stack actual (Visible en Re-buy/Venta/Cash Out) -->
-                <p id="current-stack-info" class="text-sm text-[#B0B0B0] hidden"></p> 
-
-                <!-- Input de Monto -->
-<label id="amount-label" for="amount-input" class="text-sm text-[#B0B0B0] block pt-2">Monto</label>
-                <input type="number" id="amount-input" value="20000" class="w-full p-3 rounded-lg bg-[#1A1A1A] border border-gray-700 text-white text-lg focus:border-primary-accent">
-
-                <!-- Opciones de Pago y Estado -->
-<div class="grid grid-cols-2 gap-4 pt-4">
-                    <div class="space-y-3">
-                        <p class="text-sm text-[#B0B0B0]">Método de Pago</p>
-                        <button id="btn-efectivo" class="w-full py-3 px-4 bg-success text-white font-semibold rounded-lg shadow-md hover:bg-success/80 transition flex items-center justify-center">
-                            $ Efectivo
-                        </button>
-                        <button id="btn-transferencia" class="w-full py-3 px-4 bg-gray-700 text-white font-semibold rounded-lg shadow-md hover:bg-gray-600 transition flex items-center justify-center">
-                            ↻ Transferencia
-                        </button>
-                    </div>
-                    <div class="space-y-3">
-                        <p class="text-sm text-[#B0B0B0]">Estado</p>
-                        <button id="btn-pagado" class="w-full py-3 px-4 bg-primary-accent text-white font-semibold rounded-lg shadow-md hover:bg-primary-accent/80 transition flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
-                            Pagado
-                        </button>
-                        <button id="btn-debe" class="w-full py-3 px-4 bg-gray-700 text-white font-semibold rounded-lg shadow-md hover:bg-gray-600 transition flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.328A1 1 0 019 2.5h2a1 1 0 01.743.828l1.5 8A1 1 0 0113 12h-3.136l.244 1.626A1 1 0 019 15H7a1 1 0 01-.136-.008L6.864 13H4a1 1 0 01-.996-.93l1.5-8z" clip-rule="evenodd" /></svg>
-                            Debe
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Botón de Acción Principal -->
-<button id="main-action-button" class="w-full py-3 mt-4 bg-info text-white font-extrabold text-lg rounded-lg shadow-xl hover:bg-info/90 transition flex items-center justify-center space-x-2">
-                    
-
-</button>
-
-                <!-- Aviso de Maqueta -->
-<div class="bg-[#D4AF37]/20 text-gold p-3 rounded-lg text-sm text-center border border-gold">
-                    ⚠️ Los cambios en este mockup no son permanentes.
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- FIN DEL MODAL DE ACCIONES -->
-
-<header class="bg-[#1A1A1A] shadow-xl sticky top-0 z-50 border-b border-gray-800">
-        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <!-- Icono cambiado a corazón (♥️) -->
-            <div class="font-extrabold text-xl md:text-2xl text-gold">
-                ♥️ RIVERFLOW ADMIN <span class="text-[#0B5345]">♠️</span>
-            </div>
-            <div class="space-x-4">
-                <a href="#features" class="text-[#E0E0E0] hover:text-gold font-medium hidden sm:inline transition duration-300">Características</a>
-            <a href="https://wa.me/573196592276?text=%C2%A1Hola!%20👋%20Estoy%20interesado%20en%20una%20demo%20gratuita%20de%20Poker%20Club%20Admin%20♠️.%20Mi%20club%20est%C3%A1%20en%20%F0%9F%87%A8%F0%9F%87%B4%20Colombia%2C%20en%20la%20ciudad%20de%20Medell%C3%ADn%2C%20y%20contamos%20con%20un%20promedio%20de%204%20mesas.%20Me%20gustar%C3%ADa%20conocer%20m%C3%A1s%20detalles%20sobre%20el%20sistema."
-   target="_blank"
-   class="bg-primary-accent hover:bg-[#0B5345]/80 text-white font-bold py-2 px-4 rounded-lg transition duration-300 shadow-md shadow-black/50">
-   💬 Demo
-</a>
-
-
-            </div>
-        </nav>
-    </header>
-
-    <main>
-        <section id="hero" class="bg-[#1A1A1A] pt-20 pb-24 md:pt-28 md:pb-32 border-b border-gray-800 watermark-container">
-            <!-- Marca de agua general actualizada -->
-<div class="watermark-text">
-                <span>RIVERFLOW ADMIN - AndresBG</span>
-                <span>RIVERFLOW ADMIN - AndresBG</span>
-            </div>
-            <div class="container mx-auto px-6 text-center relative z-10">
-                <p class="text-primary-accent font-bold uppercase tracking-widest mb-3 text-sm">PÁGINA DEMO</p>
-                <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight mb-6 tracking-wide">
-                    El <span class="text-gold">ALL-IN</span> de la Gestión: <span class="text-gold">Totalmente Personalizable</span> para su Club de Poker.
-                </h1>
-                <p class="max-w-3xl mx-auto text-lg md:text-xl text-[#B0B0B0] mb-10 font-light">
-                    RIVERFLOW ADMIN le proporciona la información total y la transparencia en vivo
-                    necesaria para maximizar la rentabilidad de cada mesa y jugador.
-                </p>
-                <div class="flex justify-center gap-4 flex-wrap">
-              <a href="https://wa.me/573196592276?text=%C2%A1Hola!%20👋%20Estoy%20interesado%20en%20conocer%20m%C3%A1s%20sobre%20Poker%20Club%20Admin%20%E2%99%A0%EF%B8%8F.%20Tengo%20un%20club%20en%20%5BCiudad%2C%20Pa%C3%ADs%5D%20con%20un%20promedio%20de%20%5BN%C3%BAmero%5D%20mesas%20activas%20y%20me%20gustar%C3%ADa%20agendar%20una%20demo%20para%20evaluar%20la%20plataforma."
-   target="_blank"
-   class="bg-primary-accent hover:bg-[#0B5345]/80 text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-300 shadow-xl shadow-black/40">
-   💬 Solicitar una Demo
-</a>
-
-
-                    <a href="#features" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-300 shadow-xl shadow-black/40">
-                        Ver Características
-                    </a>
-                </div>
-            </div>
-        </section>
-
-        <section id="features" class="py-20 md:py-28 bg-[#1A1A1A]">
-            <div class="container mx-auto px-6 watermark-container">
-                <!-- Marca de agua general actualizada -->
-<div class="watermark-text">
-                    <span>RIVERFLOW ADMIN - AndresBG</span>
-                    <span>RIVERFLOW ADMIN - AndresBG</span>
-                </div>
-                <h2 class="text-3xl md:text-4xl font-bold text-center text-gold mb-6 relative z-10">
-                    Módulos y Funcionalidades
-                </h2>
-                <p class="text-center text-lg text-[#B0B0B0] mb-12 max-w-2xl mx-auto relative z-10">
-                    Diseñado para la elegancia y la eficiencia, su nuevo Edge administrativo.
-                </p>
-
-                <div class="flex flex-wrap justify-center -mb-px space-x-2 md:space-x-4 relative z-10">
-                    <button class="tab-btn text-sm md:text-base font-bold py-3 px-4 md:px-6 rounded-t-lg" data-tab="tab-mesas">
-                        🗂️ Control Mesas
-                    </button>
-                    <button class="tab-btn text-sm md:text-base font-bold py-3 px-4 md:px-6 rounded-t-lg" data-tab="tab-jugador">
-                        👤 Jugador 360°
-                    </button>
-                    <button class="tab-btn text-sm md:text-base font-bold py-3 px-4 md:px-6 rounded-t-lg" data-tab="tab-gestion">
-                        💰 Gestión Central
-                    </button>
-                    <button class="tab-btn text-sm md:text-base font-bold py-3 px-4 md:px-6 rounded-t-lg" data-tab="tab-torneos">
-                        🏆 Control Torneos
-                    </button>
-                    <button class="tab-btn active text-sm md:text-base font-bold py-3 px-4 md:px-6 rounded-t-lg" data-tab="tab-alertas">
-                        🔔 Smart Alerts
-                    </button>
-					<button class="tab-btn text-sm md:text-base font-bold py-3 px-4 md:px-6 rounded-t-lg" data-tab="tab-reportes">
-						📊 Reportes Personalizables
-					</button>
-
-                </div>
-
-                <div class="bg-[#242424] p-8 md:p-12 rounded-b-lg rounded-tr-lg shadow-2xl shadow-black/60 border border-gray-700 relative z-10">
-                    
-
-<div id="tab-mesas" class="tab-content">
-                        <div class="grid lg:grid-cols-1 gap-8 md:gap-12 items-start">
-                            
-
-<div class="bg-[#1A1A1A] p-4 rounded-lg shadow-inner shadow-black/50 border border-gold space-y-2 text-sm">
-                                <h3 class="text-xl md:text-2xl font-bold text-gold mb-2 border-b border-gray-700 pb-2">Mesa Activa: High Stakes</h3>
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <div class="text-center">
-                                        <p class="text-[#B0B0B0] text-xs uppercase tracking-wider">Ciegas</p>
-                                        <p class="text-white font-extrabold text-lg">2000 / 5000</p>
-                                    </div>
-                                    <div class="text-center">
-                                        <p class="text-[#B0B0B0] text-xs uppercase tracking-wider">Jugadores</p>
-                                        <p class="text-white font-extrabold text-lg">6 / 8</p>
-                                    </div>
-                                    <div class="text-center">
-                                        <p class="text-[#B0B0B0] text-xs uppercase tracking-wider">Inversión Total</p>
-                                        <p class="text-success font-extrabold text-lg">$4,200 <span class="text-xs text-[#B0B0B0]">(Prom $700)</span></p>
-                                    </div>
-                                    <div class="text-center">
-                                        <button onclick="openModal('buyin')" class="w-full py-2 bg-primary-accent text-white font-bold rounded-lg hover:bg-[#0B5345]/80 transition shadow-md mt-1">
-                                            + Sentar/Buy-in
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            
-
-<div class="overflow-x-auto">
-<h4 class="font-bold mb-4 text-gold text-lg">Maqueta: Jugadores en Mesa (Live Tracking)</h4>
-
-<div class="overflow-x-auto rounded-lg shadow-md border border-[#0B5345] bg-[#1A1A1A] p-2 -mx-2 sm:mx-0">
-    <table class="min-w-full text-left text-sm border-collapse">
-        <thead>
-            <tr class="uppercase text-xs font-bold text-[#B0B0B0] border-b border-gray-700">
-                <th class="p-3">JUGADOR</th>
-                <th class="p-3 text-center">STACK</th>
-                <th class="p-3 text-center">INVERSIÓN</th>
-                <th class="p-3 text-center">ESTADO</th>
-                <th class="p-3 text-center w-40">ACCIONES RÁPIDAS</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Jugador 1 -->
-            <tr class="border-b border-gray-800 hover:bg-[#242424] table-player-row">
-                <td class="p-3 text-success font-semibold whitespace-nowrap">
-                    Silvia Ruiz <span class="text-xs text-[#B0B0B0] block sm:inline">(#213)</span>
-                </td>
-                <td class="p-3 text-white font-mono text-center">$50,000</td>
-                <td class="p-3 text-white font-mono text-center">$50,000</td>
-                <td class="p-3 text-center">
-                    <span class="bg-primary-accent/50 text-primary-accent text-xs font-semibold px-2 py-1 rounded-full">PAGADO</span>
-                </td>
-                <td class="p-3 space-x-1 flex justify-center items-center flex-wrap">
-                    <button onclick="openModal('re-buy', 'Silvia Ruiz', 50000)" class="bg-blue-600 text-white text-xs px-2 py-1 rounded-lg hover:bg-blue-700 my-0.5">Re-Buy</button>
-                    <button onclick="openModal('sell', 'Silvia Ruiz', 50000)" class="bg-success text-white text-xs px-2 py-1 rounded-lg hover:bg-success/80 my-0.5">Venta</button>
-                    <button onclick="openModal('cash-out', 'Silvia Ruiz', 50000)" class="bg-gold/80 text-[#1A1A1A] text-xs px-2 py-1 rounded-lg hover:bg-gold my-0.5">Cash Out</button>
-                </td>
-            </tr>
-
-            <!-- Jugador 2 -->
-            <tr class="border-b border-gray-800 hover:bg-[#242424] table-player-row">
-                <td class="p-3 text-gold font-semibold whitespace-nowrap">
-                    Andres Lopez <span class="text-xs text-[#B0B0B0] block sm:inline">(#088)</span>
-                </td>
-                <td class="p-3 text-white font-mono text-center">$45,000</td>
-                <td class="p-3 text-white font-mono text-center">$50,000</td>
-                <td class="p-3 text-center">
-                    <span class="bg-yellow-800/50 text-gold text-xs font-semibold px-2 py-1 rounded-full">DEBE</span>
-                </td>
-                <td class="p-3 space-x-1 flex justify-center items-center flex-wrap">
-                    <button onclick="openModal('re-buy', 'Andres Lopez', 45000)" class="bg-blue-600 text-white text-xs px-2 py-1 rounded-lg hover:bg-blue-700 my-0.5">Re-Buy</button>
-                    <button onclick="openModal('sell', 'Andres Lopez', 45000)" class="bg-success text-white text-xs px-2 py-1 rounded-lg hover:bg-success/80 my-0.5">Venta</button>
-                    <button onclick="openModal('cash-out', 'Andres Lopez', 45000)" class="bg-gold/80 text-[#1A1A1A] text-xs px-2 py-1 rounded-lg hover:bg-gold my-0.5">Cash Out</button>
-                </td>
-            </tr>
-
-            <!-- Jugador 3 -->
-            <tr class="border-b border-gray-800 hover:bg-[#242424] table-player-row">
-                <td class="p-3 text-white font-semibold whitespace-nowrap">
-                    Maria García <span class="text-xs text-[#B0B0B0] block sm:inline">(#345)</span>
-                </td>
-                <td class="p-3 text-white font-mono text-center">$72,000</td>
-                <td class="p-3 text-white font-mono text-center">$70,000</td>
-                <td class="p-3 text-center">
-                    <span class="bg-green-800/50 text-success text-xs font-semibold px-2 py-1 rounded-full">JUGANDO</span>
-                </td>
-                <td class="p-3 space-x-1 flex justify-center items-center flex-wrap">
-                    <button onclick="openModal('re-buy', 'Maria García', 72000)" class="bg-blue-600 text-white text-xs px-2 py-1 rounded-lg hover:bg-blue-700 my-0.5">Re-Buy</button>
-                    <button onclick="openModal('sell', 'Maria García', 72000)" class="bg-success text-white text-xs px-2 py-1 rounded-lg hover:bg-success/80 my-0.5">Venta</button>
-                    <button onclick="openModal('cash-out', 'Maria García', 72000)" class="bg-gold/80 text-[#1A1A1A] text-xs px-2 py-1 rounded-lg hover:bg-gold my-0.5">Cash Out</button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</div>
-
-                                </div>
-                            </div>
-                        </div>
-                  
-
-                    
-
-<div id="tab-jugador" class="tab-content" class="tab-content active">
-                        <div class="grid lg:grid-cols-2 gap-8 md:gap-12 items-start">
-<div class="bg-[#1A1A1A] p-6 rounded-lg shadow-md border border-[#0B5345]">
-    <h3 class="text-2xl font-bold text-primary-accent mb-4 flex items-center space-x-2">
-        <span>👤</span>
-        <span>Ficha de Jugador 360° (Player Hub)</span>
-    </h3>
-    <p class="text-[#E0E0E0] text-base leading-relaxed mb-6">
-        Accede a un <span class="text-gold font-semibold">análisis completo</span> de cada jugador: 
-    </p>
-    <ul class="list-none space-y-2 text-[#C0C0C0]">
-        <li class="flex items-center space-x-2">
-            <span class="text-red-500">❤️</span>
-            <span><span class="font-semibold text-white">Horas Reales de Juego</span> – Monitorea la actividad auténtica del jugador.</span>
-        </li>
-        <li class="flex items-center space-x-2">
-            <span class="text-black">♠️</span>
-            <span><span class="font-semibold text-white">Historial de Mesas</span> – Revisa el desempeño en distintas mesas.</span>
-        </li>
-        <li class="flex items-center space-x-2">
-            <span class="text-black">♣️</span>
-            <span><span class="font-semibold text-white">Rendimiento (EV/ROI)</span> – Evalúa resultados estratégicos y ganancias reales.</span>
-        </li>
-        <li class="flex items-center space-x-2">
-            <span class="text-red-500">♦️</span>
-            <span><span class="font-semibold text-white">GTO-Compliance</span> – Analiza la adherencia a estrategias óptimas.</span>
-        </li>
-        <li class="flex items-center space-x-2">
-            <span class="text-red-500">❤️</span>
-            <span><span class="font-semibold text-white">Jackpots</span> – Control de premios y ganancias extra.</span>
-        </li>
-        <li class="flex items-center space-x-2">
-            <span class="text-black">♠️</span>
-            <span><span class="font-semibold text-white">Sistema VIP</span> – Seguimiento de fidelización y recompensas.</span>
-        </li>
-    </ul>
-    <p class="text-[#A0A0A0] text-sm mt-4">
-        Datos reales basados en juego auténtico, no en sesiones ganadas, para evaluar el verdadero valor del jugador.
-    </p>
-</div>
-
-                            
-
-<div class="bg-[#1A1A1A] p-6 rounded-xl shadow-2xl shadow-black/70 border border-gold transform hover:scale-[1.01] transition duration-300">
-                                <h4 class="font-extrabold text-center mb-6 text-gold text-xl uppercase tracking-wider">Perfil Alex "The Hammer" Johnson</h4>
-                                
-                                <div class="flex items-center justify-center mb-6 border-b border-gray-700 pb-4">
-                                    <div class="w-16 h-16 bg-gold rounded-full flex items-center justify-center font-extrabold text-[#1A1A1A] text-3xl mr-4 border-2 border-primary-accent">AJ</div>
-                                    <div class="text-left">
-                                        <h5 class="font-bold text-xl text-white">Alex "The Hammer" Johnson</h5>
-                                        <p class="text-sm text-primary-accent font-semibold tracking-wide">Estatus: VIP DIAMANTE</p>
-                                    </div>
-                                </div>
-
-                                
-
-<div class="grid grid-cols-3 gap-4 mb-6">
-                                    <div class="bg-gray-900 p-3 rounded-lg text-center border border-gray-700 shadow-md">
-                                        <p class="text-xs text-[#B0B0B0] uppercase">Rendimiento (ROI)</p>
-                                        <h6 class="font-extrabold text-lg text-success mt-1">+21.3%</h6>
-                                    </div>
-                                    <div class="bg-gray-900 p-3 rounded-lg text-center border border-gray-700 shadow-md">
-                                        <p class="text-xs text-[#B0B0B0] uppercase">Horas Reales</p>
-                                        <h6 class="font-extrabold text-lg text-white mt-1">520h</h6>
-                                    </div>
-                                    <div class="bg-gray-900 p-3 rounded-lg text-center border border-gray-700 shadow-md">
-                                        <p class="text-xs text-[#B0B0B0] uppercase">Fidelidad (Puntos)</p>
-                                        <h6 class="font-extrabold text-lg text-gold mt-1">12,450</h6>
-                                    </div>
-                                </div>
-
-                                
-
-<div class="space-y-3 bg-[#242424] p-4 rounded-lg border border-gray-700">
-                                    <div class="flex justify-between items-center text-sm">
-                                        <p class="text-[#B0B0B0] font-semibold">GTO Compliance Score:</p>
-                                        <p class="text-success font-bold text-lg">92%</p>
-                                    </div>
-                                    <div class="w-full h-2 bg-gray-700 rounded-full">
-                                        <div class="h-2 bg-success rounded-full" style="width: 92%;"></div>
-                                    </div>
-                                    <div class="flex justify-between items-center text-sm">
-                                        <p class="text-[#B0B0B0] font-semibold">EV por Hora (Expected Value):</p>
-                                        <p class="text-white font-bold text-lg">$12.50</p>
-                                    </div>
-                                    
-                                </div>
-
-                                <h6 class="font-bold text-gold text-sm mt-6 mb-2 border-t border-gray-700 pt-3">Historial Reciente (Últimos 3):</h6>
-                                <ul class="text-xs text-[#B0B0B0] space-y-1 bg-[#1A1A1A] p-2 rounded">
-                                    <li class="flex justify-between"><span>Mesa High Stakes (Hoy)</span> <span class="text-success font-semibold">+$320</span></li>
-                                    <li class="flex justify-between"><span>Mesa 3/5 (Ayer)</span> <span class="text-error font-semibold">-$150</span></li>
-                                    <li class="flex justify-between"><span>Torneo Freezeout</span> <span class="text-white font-semibold">+$1,200</span></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    
-
-<div id="tab-gestion" class="tab-content">
-                        <div class="grid lg:grid-cols-2 gap-8 md:gap-12 items-start">
-                            <div>
-                                <h3 class="text-2xl font-bold text-primary-accent mb-4">💰 Hub Central de Gestión (Caja Unificada)</h3>
-                                <p class="text-[#E0E0E0] text-base leading-relaxed mb-6">
-                                    Visión global **sencilla**. Acceso directo a reportes de **Flujo de Caja, Torneos, Consumos e Inventario**. Simplificamos el *back-end* para que pueda concentrarse en la rentabilidad del club sin complejidad.
-                                </p>
-                            </div>
-                            <div class="bg-[#1A1A1A] p-6 rounded-xl shadow-2xl shadow-black/70 border border-gray-700">
-                                <h4 class="font-bold text-center mb-4 text-gold">Maqueta: Dashboard de Métricas Clave</h4>
-
-                                
-
-<div class="mb-5 p-3 bg-gray-900 rounded-lg border border-primary-accent">
-                                    <h5 class="text-sm font-semibold text-gold mb-2">Filtro Temporal de Reporte</h5>
-                                    <div class="grid grid-cols-2 gap-3 text-sm">
-                                        <div>
-                                            <label for="fecha-inicio" class="text-xs text-[#B0B0B0] block mb-1">Desde:</label>
-                                            <input type="date" id="fecha-inicio" value="2024-10-01" class="w-full p-2 bg-[#1A1A1A] border border-gray-700 rounded-md text-white focus:border-gold">
-                                        </div>
-                                        <div>
-                                            <label for="fecha-fin" class="text-xs text-[#B0B0B0] block mb-1">Hasta:</label>
-                                            <input type="date" id="fecha-fin" value="2024-10-31" class="w-full p-2 bg-[#1A1A1A] border border-gray-700 rounded-md text-white focus:border-gold">
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div class="bg-gray-900 p-4 rounded-lg shadow-md border border-success">
-                                        <p class="text-sm text-[#B0B0B0]">Beneficio Neto (Período)</p>
-                                        <h5 class="font-bold text-2xl text-success">+$15,250</h5>
-                                    </div>
-                                    <div class="bg-gray-900 p-4 rounded-lg shadow-md border border-primary-accent">
-                                        <p class="text-sm text-[#B0B0B0]">Rentabilidad (ROI Total)</p>
-                                        <h5 class="font-bold text-2xl text-primary-accent">+18.5%</h5>
-                                    </div>
-                                    <div class="bg-gray-900 p-4 rounded-lg shadow-md border border-gold col-span-2">
-                                        <p class="text-sm text-[#B0B0B0]">Deudas Pendientes (Jugadores)</p>
-                                        <h5 class="font-bold text-2xl text-white">4 Cuentas ($1,890)</h5>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    
-
-<div id="tab-torneos" class="tab-content">
-                        <div class="grid lg:grid-cols-2 gap-8 md:gap-12 items-start">
-                            <div>
-                                <h3 class="text-2xl font-bold text-primary-accent mb-4">🏆 Control en Tiempo Real de Torneos</h3>
-                                <p class="text-[#E0E0E0] text-base leading-relaxed mb-6">
-                                    Gestión completa de **entradas, reentradas, add-ons** y el control en vivo de jugadores y mesas. Su herramienta para ejecutar torneos fluidos y transparentes.
-                                </p>
-                            </div>
-                            <div class="bg-[#1A1A1A] p-6 rounded-xl shadow-2xl shadow-black/70 border border-gold">
-                                <h4 class="font-extrabold text-center mb-4 text-gold text-xl">Torneo Activo: Deepstack 10K Gtd</h4>
-
-                                
-
-<div class="grid grid-cols-3 gap-3 mb-6 p-4 bg-gray-900 rounded-lg border border-primary-accent">
-                                    <div class="text-center">
-                                        <p class="text-xs text-[#B0B0B0] uppercase">Jugadores Restantes</p>
-                                        <h6 class="font-extrabold text-2xl text-white mt-1">45</h6>
-                                    </div>
-                                    <div class="text-center">
-                                        <p class="text-xs text-[#B0B0B0] uppercase">Entradas / Reentradas</p>
-                                        <h6 class="font-extrabold text-2xl text-success mt-1">82 / 18</h6>
-                                    </div>
-                                    <div class="text-center">
-                                        <p class="text-xs text-[#B0B0B0] uppercase">Premio Acumulado</p>
-                                        <h6 class="font-extrabold text-2xl text-gold mt-1">$10,000</h6>
-                                    </div>
-                                </div>
-
-                                
-
-<h5 class="font-bold text-gold text-sm mb-3 border-b border-gray-700 pb-2">Control de Mesas y Asientos:</h5>
-                                <div class="space-y-3">
-                                    <div class="flex justify-between items-center bg-[#242424] p-3 rounded-lg border border-gray-700 hover:bg-[#2e2e2e] cursor-pointer">
-                                        <p class="font-semibold text-white">Mesa 1 (10/10 Jugadores)</p>
-                                        <button class="bg-primary-accent text-white text-xs px-3 py-1 rounded-full hover:bg-[#0B5345]/80">Ver Detalle</button>
-                                    </div>
-                                    <div class="flex justify-between items-center bg-[#242424] p-3 rounded-lg border border-gray-700 hover:bg-[#2e2e2e] cursor-pointer">
-                                        <p class="font-semibold text-white">Mesa 2 (9/10 Jugadores)</p>
-                                        <button class="bg-primary-accent text-white text-xs px-3 py-1 rounded-full hover:bg-[#0B5345]/80">Ver Detalle</button>
-                                    </div>
-                                    <div class="flex justify-between items-center bg-[#242424] p-3 rounded-lg border border-gray-700 hover:bg-[#2e2e2e] cursor-pointer">
-                                        <p class="font-semibold text-white">Mesa 3 (4/10 Jugadores)</p>
-                                        <button class="bg-primary-accent text-white text-xs px-3 py-1 rounded-full hover:bg-[#0B5345]/80">Ver Detalle</button>
-                                    </div>
-                                </div>
-
-                                <h5 class="font-bold text-gold text-sm mt-6 mb-3 border-b border-gray-700 pb-2">Acciones de Torneo:</h5>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <button onclick="openModal('buyin')" class="py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition shadow-md">
-                                        + Añadir Jugador
-                                    </button>
-                                    <button class="py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition shadow-md">
-                                        Eliminar Jugador
-                                    </button>
-                                    <button class="py-3 bg-success text-white font-bold rounded-lg hover:bg-success/80 transition shadow-md col-span-2">
-                                        Finalizar Período de Registro
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    
-
-<div id="tab-alertas" >
-                        <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-                            <div>
-                                <h3 class="text-2xl font-bold text-primary-accent mb-4">🔔 Notificaciones Inteligentes (Smart Alerts)</h3>
-                                <p class="text-[#E0E0E0] text-base leading-relaxed mb-6">
-                                    Alertas **<span class="text-gold text-4xl block font-extrabold uppercase">PERSONALIZABLES</span>** de próximos eventos a jugadores, grupos específicos o redes sociales. Un sistema proactivo que mantiene a su comunidad enganchada y lista para jugar.
-                                </p>
-                            </div>
-                            <div class="bg-[#1A1A1A] p-6 rounded-lg shadow-inner shadow-black/50 border border-gray-700">
-                                <h4 class="font-bold text-center mb-4 text-gold">Maqueta: Promoción de Poker (Impacto Visual)</h4>
-                                <div class="bg-gray-900 p-5 rounded-lg shadow-2xl border border-primary-accent text-center relative overflow-hidden">
-                                    
-
-<div class="absolute inset-0 bg-primary-accent opacity-10"></div>
-                                    <div class="relative z-10">
-                                        <p class="text-5xl mb-3 animate-pulse">♠️♥️</p>
-                                        <h5 class="font-extrabold text-2xl text-gold mb-2 uppercase tracking-wide">
-                                            ¡Doble Puntos VIP!
-                                        </h5>
-                                        <p class="text-lg text-white mb-4">
-                                            Hoy en High Stakes: Cada mano cuenta el doble para tu estatus DIAMANTE.
-                                        </p>
-                                        <input type="text" placeholder="Asunto: ¡Doble Puntos VIP Hoy!" class="w-full p-2 border border-gray-700 bg-[#1A1A1A] text-white rounded-md mb-3 text-sm focus:border-gold">
-                                        <textarea placeholder="Mensaje: Recuerda, tu fidelidad tiene premio. Juega ahora y acelera tu estatus VIP." rows="2" class="w-full p-2 border border-gray-700 bg-[#1A1A1A] text-white rounded-md mb-3 text-sm focus:border-gold"></textarea>
-                                        
-                                        <button class="bg-primary-accent hover:bg-[#0B5345]/80 text-white font-bold py-2 px-4 rounded-lg text-sm transition duration-300 w-full shadow-md shadow-black/40">
-                                            Enviar Alerta (WhatsApp & Redes)
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-<div id="tab-reportes" class="tab-content">
-    <div class="grid lg:grid-cols-2 gap-8 md:gap-12 items-start">
-
-        <div>
-            <h3 class="text-2xl font-bold text-primary-accent mb-4">📊 Reportes a Medida</h3>
-            <p class="text-[#E0E0E0] text-base leading-relaxed mb-6">
-                Configure reportes según las necesidades de su club: <strong>Balances contables, auxiliares, flujo de caja, ingresos por torneo y consumos</strong>. Exportación en PDF y CSV para análisis offline.
-            </p>
-
-            <div class="bg-gray-900 p-4 rounded-lg border border-gold mb-4">
-                <h5 class="text-sm font-semibold text-gold mb-2">Seleccionar Tipo de Reporte</h5>
-                <select class="w-full p-2 bg-[#1A1A1A] border border-gray-700 rounded-md text-white focus:border-gold">
-                    <option>Balance General</option>
-                    <option>Auxiliares de Caja</option>
-                    <option>Reporte de Torneos</option>
-                    <option>Flujo de Caja</option>
-                    <option>Consumos de Jugadores</option>
-                </select>
-            </div>
-
-            <div class="bg-gray-900 p-4 rounded-lg border border-primary-accent mb-4">
-                <h5 class="text-sm font-semibold text-primary-accent mb-2">Filtro de Fecha</h5>
-                <div class="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                        <label class="text-xs text-[#B0B0B0] block mb-1">Desde:</label>
-                        <input type="date" class="w-full p-2 bg-[#1A1A1A] border border-gray-700 rounded-md text-white focus:border-primary-accent">
-                    </div>
-                    <div>
-                        <label class="text-xs text-[#B0B0B0] block mb-1">Hasta:</label>
-                        <input type="date" class="w-full p-2 bg-[#1A1A1A] border border-gray-700 rounded-md text-white focus:border-primary-accent">
-                    </div>
-                </div>
-            </div>
-
-            <button class="w-full py-3 mt-2 bg-gold text-[#1A1A1A] font-bold rounded-lg hover:bg-gold/80 transition shadow-md">
-                Generar Reporte
-            </button>
-
-        </div>
-
-        <div class="bg-[#1A1A1A] p-6 rounded-xl shadow-2xl shadow-black/70 border border-gray-700">
-            <h4 class="font-bold text-center mb-4 text-gold">Vista Previa del Reporte</h4>
-            <div class="overflow-x-auto">
-                <table class="min-w-full text-left text-sm border border-gray-700">
-                    <thead>
-                        <tr class="uppercase text-xs font-bold text-[#B0B0B0] border-b border-gray-700">
-                            <th class="p-3">Cuenta</th>
-                            <th class="p-3 text-center">Debe</th>
-                            <th class="p-3 text-center">Haber</th>
-                            <th class="p-3 text-center">Saldo</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="border-b border-gray-800 hover:bg-[#242424]">
-                            <td class="p-3">Caja Principal</td>
-                            <td class="p-3 text-center">$5,000</td>
-                            <td class="p-3 text-center">$1,200</td>
-                            <td class="p-3 text-center text-success font-bold">$3,800</td>
-                        </tr>
-                        <tr class="border-b border-gray-800 hover:bg-[#242424]">
-                            <td class="p-3">Torneos</td>
-                            <td class="p-3 text-center">$3,200</td>
-                            <td class="p-3 text-center">$500</td>
-                            <td class="p-3 text-center text-success font-bold">$2,700</td>
-                        </tr>
-                        <tr class="border-b border-gray-800 hover:bg-[#242424]">
-                            <td class="p-3">Consumos</td>
-                            <td class="p-3 text-center">$800</td>
-                            <td class="p-3 text-center">$400</td>
-                            <td class="p-3 text-center text-success font-bold">$400</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-  </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="demo" class="py-20 md:py-28 bg-[#1A1A1A] border-t border-gray-800 watermark-container">
-            <!-- Marca de agua general actualizada -->
-<div class="watermark-text">
-                <span>RIVERFLOW ADMIN - AndresBG</span>
-                <span>RIVERFLOW ADMIN - AndresBG</span>
-            </div>
-            <div class="container mx-auto px-6 text-center relative z-10">
-                <h2 class="text-3xl md:text-4xl font-extrabold mb-6 text-gold">
-                    🚀 Escalabilidad y Control Premium.
-                </h2>
-                <p class="text-lg md:text-xl text-[#B0B0B0] max-w-2xl mx-auto mb-10">
-                    Dé el salto a una gestión profesional. Vaya All-In en el futuro de su club.
-                </p>
-          <a href="https://wa.me/573196592276?text=%C2%A1Hola!%20👋%20Estoy%20interesado%20en%20conocer%20m%C3%A1s%20sobre%20Poker%20Club%20Admin%20%E2%99%A0%EF%B8%8F.%20Tengo%20un%20club%20en%20%5BCiudad%2C%20Pa%C3%ADs%5D%20con%20un%20promedio%20de%20%5BN%C3%BAmero%5D%20mesas%20activas%20y%20me%20gustar%C3%ADa%20agendar%20una%20demo%20para%20evaluar%20la%20plataforma."
-   target="_blank"
-   class="bg-primary-accent hover:bg-[#0B5345]/80 text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-300 shadow-xl shadow-black/40">
-   💬 Solicitar una Demo
-</a>
-
-
-            </div>
-        </section>
-    </main>
-
-    <footer class="bg-black text-[#B0B0B0] py-6">
-        <div class="container mx-auto px-6 text-center">
-            <p class="text-sm mb-1">Página Demo Temporal</p>
-            <p class="text-xs text-gray-500">Propiedad Intelectual y Derechos Reservados © 2025 Andrés Babativa Goyeneche</p>
-        </div>
-    </footer>
-
-    <script>
-        // ESTE JAVASCRIPT ES UN MOCKUP Y UNA CAPTURA DE PANTALLA FUNCIONAL.
-        // LAS FUNCIONES AQUÍ SON SÓLO PARA DEMOSTRAR EL ASPECTO VISUAL Y LA INTERACCIÓN SIMULADA DEL MODAL.
-        // NO HAY LÓGICA DE NEGOCIO REAL O PERSISTENCIA DE DATOS IMPLEMENTADA AQUÍ.
-        
-        // Referencias del Modal
-        const actionModal = document.getElementById('action-modal');
-        const modalTitle = document.getElementById('modal-title');
-        const playerSelectContainer = document.getElementById('player-select-container');
-        const jugadorSelect = document.getElementById('jugador-select');
-        const currentStackInfo = document.getElementById('current-stack-info');
-        const amountLabel = document.getElementById('amount-label');
-        const amountInput = document.getElementById('amount-input');
-        const mainActionButton = document.getElementById('main-action-button');
-
-        // Función para abrir el modal con contenido dinámico (Buy-in, Re-buy, Venta, Cash Out)
-        function openModal(type, playerName = '', currentStack = 0) {
-            let title = '';
-            let amountLabelText = '';
-            let buttonText = '';
-            let buttonIcon = '';
-            let buttonColorClass = '';
-
-            // Resetear visibilidad de elementos específicos
-            playerSelectContainer.classList.add('hidden');
-            currentStackInfo.classList.add('hidden');
-
-            // Control de la marca de agua en el modal (ocultar para Re-Buy, Venta y Cash Out)
-            const modalWatermark = actionModal.querySelector('.modal-content .watermark-text');
-            if (modalWatermark) {
-                if (type === 'buyin') {
-                    modalWatermark.style.display = 'flex'; // Mostrar para Buy-in (para la personalización)
-                } else {
-                    modalWatermark.style.display = 'none'; // Ocultar para otros
-                }
-            }
-
-
-            switch (type) {
-                case 'buyin':
-                    title = 'Buy-in en Mesa 2000/5000';
-                    amountLabelText = 'Monto Buy-in';
-                    buttonText = 'Sentar Jugador';
-                    buttonIcon = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>';
-                    buttonColorClass = 'bg-success hover:bg-success/90';
-                    amountInput.value = 50000; // Valor por defecto
-                    playerSelectContainer.classList.remove('hidden'); // Mostrar el selector de jugador
-                    break;
-                case 're-buy':
-                    title = `Re-Buy para ${playerName}`;
-                    currentStackInfo.textContent = `Stack actual: $${currentStack.toLocaleString('es-CO')}`;
-                    currentStackInfo.classList.remove('hidden');
-                    amountLabelText = 'Monto del Re-Buy';
-                    buttonText = 'Confirmar Re-Buy';
-                    buttonIcon = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>';
-                    buttonColorClass = 'bg-info hover:bg-info/90';
-                    amountInput.value = 20000; // Valor por defecto para re-buy
-                    break;
-                case 'sell':
-                    title = `Venta para ${playerName}`;
-                    currentStackInfo.textContent = `Stack actual: $${currentStack.toLocaleString('es-CO')}`;
-                    currentStackInfo.classList.remove('hidden');
-                    amountLabelText = 'Monto de Venta';
-                    buttonText = 'Confirmar Venta';
-                    buttonIcon = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1L15 4H9l-.401 1.001A2.999 2.999 0 0012 8zm-7 0a3 3 0 013-3h8a3 3 0 013 3m-13 6l2-2m0 0l2-2m-2 2l-2-2m2 2l2-2m-2 2l2-2m2 2l2-2" /></svg>';
-                    buttonColorClass = 'bg-success hover:bg-success/90';
-                    amountInput.value = Math.min(25000, currentStack); // Sugerir un monto, no más que el stack
-                    break;
-                case 'cash-out':
-                    title = `Cash Out para ${playerName}`;
-                    currentStackInfo.textContent = `Stack final: $${currentStack.toLocaleString('es-CO')}`;
-                    currentStackInfo.classList.remove('hidden');
-                    amountLabelText = 'Monto a Retirar';
-                    buttonText = 'Confirmar Cash Out';
-                    buttonIcon = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>';
-                    buttonColorClass = 'bg-error hover:bg-error/90';
-                    amountInput.value = currentStack; // Sugerir el stack completo
-                    break;
-            }
-
-            modalTitle.textContent = title;
-            amountLabel.textContent = amountLabelText;
-            mainActionButton.innerHTML = `${buttonIcon}<span>${buttonText}</span>`;
-            mainActionButton.className = `w-full py-3 mt-4 text-white font-extrabold text-lg rounded-lg shadow-xl transition flex items-center justify-center space-x-2 ${buttonColorClass}`;
-            
-            // Setear el jugador seleccionado si no es un buy-in
-            if (playerName && type !== 'buyin') {
-                const existingOption = Array.from(jugadorSelect.options).find(option => option.textContent === playerName);
-                if (existingOption) {
-                    jugadorSelect.value = playerName;
-                } else {
-                    // Si el jugador no está en la lista (para el mockup)
-                    const newOption = new Option(playerName, playerName, true, true);
-                    jugadorSelect.add(newOption);
-                }
-            }
-
-
-            actionModal.style.display = 'flex';
-        }
-
-        // Función para cerrar el Modal
-        function closeModal() {
-            actionModal.style.display = 'none';
-        }
-        window.onclick = function(event) {
-            if (event.target == actionModal) {
-                closeModal();
-            }
-        }
-
-        // Script de control de pestañas
-        document.addEventListener('DOMContentLoaded', () => {
-            const tabs = document.querySelectorAll('.tab-btn');
-            const contents = document.querySelectorAll('.tab-content');
-
-            // Activar la pestaña Smart Alerts por defecto
-            document.querySelector('[data-tab="tab-alertas"]').classList.add('active');
-            document.getElementById('tab-alertas').classList.add('active');
-
-
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    const target = tab.getAttribute('data-tab');
-                    
-                    tabs.forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    
-                    contents.forEach(c => {
-                        c.classList.remove('active');
-                        if (c.id === target) {
-                            c.classList.add('active');
-                        }
-                    });
-                });
-            });
-
-            // Script de scroll suave para links de navegación
-            const navLinks = document.querySelectorAll('a[href^="#"]');
-            navLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const targetId = this.getAttribute('href');
-                    const targetElement = document.querySelector(targetId);
-                    if (targetElement) {
-                        const headerOffset = 64; 
-                        const elementPosition = targetElement.getBoundingClientRect().top;
-                        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-                        window.scrollTo({
-                            top: offsetPosition,
-                            behavior: 'smooth'
-                        });
-                    }
-                });
-            });
-        });
-    </script>
-</body>
-</html>
+	<!DOCTYPE html>
+	<html lang="es">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>RIVERFLOW ADMIN - Página Demo</title>
+		<script src="https://cdn.tailwindcss.com"></script>
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+		<style>
+			/* Tipografía */
+			@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Roboto:wght@400;500;700&display=swap');
+			body {
+				font-family: 'Roboto', sans-serif;
+			}
+			h1, h2, h3 {
+				font-family: 'Montserrat', sans-serif;
+			}
+
+			/* Paleta Elegante: Fondo #1A1A1A, Acento Principal #0B5345 (Verde Militar), Dorado #FFD700 */
+
+			.bg-main {
+				background-color: #1A1A1A;
+			}
+			.text-primary-accent {
+				color: #0B5345;
+			}
+			.bg-primary-accent {
+				background-color: #0B5345;
+			}
+			.border-primary-accent {
+				border-color: #0B5345;
+			}
+			/* Ajuste para el dorado/amarillo quemado */
+			.text-gold {
+				color: #D4AF37; /* Un dorado más oscuro y quemado */
+			}
+			.bg-gold {
+				background-color: #D4AF37;
+			}
+			.border-gold {
+				border-color: #D4AF37;
+			}
+			.bg-success {
+				background-color: #2ECC71; /* Verde más claro para acciones de éxito */
+			}
+			.bg-info {
+				background-color: #3B82F6; /* Azul para acciones de Re-Buy */
+			}
+			.text-info {
+				color: #3B82F6;
+			}
+			.text-error {
+				color: #EF4444; /* Rojo para acciones de error/salida */
+			}
+			.bg-error {
+				background-color: #EF4444;
+			}
+
+
+			/* Estilos de Pestañas */
+			.tab-btn {
+				border-bottom: 4px solid transparent;
+				color: #B0B0B0;
+				transition: all 0.3s ease;
+				font-family: 'Montserrat', sans-serif;
+			}
+			.tab-btn:hover {
+				color: #D4AF37; /* Usar el nuevo dorado */
+			}
+			.tab-btn.active {
+				border-color: #0B5345; /* Línea verde oscuro */
+				color: #D4AF37; /* Texto dorado */
+				background-color: #242424;
+			}
+			.tab-content {
+				display: none;
+			}
+			.tab-content.active {
+				display: block;
+			}
+			html {
+				scroll-behavior: smooth;
+			}
+
+			/* Estilos del Modal */
+			.modal {
+				display: none;
+				position: fixed;
+				z-index: 100;
+				left: 0;
+				top: 0;
+				width: 100%;
+				height: 100%;
+				overflow: auto;
+				background-color: rgba(0,0,0,0.8);
+				backdrop-filter: blur(5px);
+				justify-content: center;
+				align-items: center;
+			}
+			.modal-content {
+				background-color: #242424;
+				padding: 30px;
+				border-radius: 12px;
+				width: 90%;
+				max-width: 500px;
+				box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+				border: 1px solid #0B5345;
+				position: relative; /* Para que el watermark dentro sea relativo a este */
+			}
+			.modal-content .watermark-text {
+				font-size: 30px; /* Ajuste para el modal */
+				opacity: 0.1;
+				transform: rotate(-10deg);
+			}
+
+
+			/* Estilo para la tabla de jugadores */
+			.table-player-row > td {
+				padding: 0.75rem 0.5rem;
+			}
+			@media (min-width: 768px) {
+				.table-player-row > td {
+					padding: 1rem 1rem;
+				}
+			}
+
+			/* Estilo de Marca de Agua (Watermark) */
+			.watermark-container {
+				position: relative;
+				overflow: hidden;
+			}
+			.watermark-text {
+				content: "RIVERFLOW ADMIN - AndresBG";
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				pointer-events: none;
+				opacity: 0.05; /* Muy sutil */
+				font-size: 4vw; /* Se ajusta al tamaño de la pantalla */
+				font-family: 'Montserrat', sans-serif;
+				color: #D4AF37; /* Usar el nuevo dorado */
+				transform: rotate(-15deg);
+				z-index: 1;
+				display: flex;
+				justify-content: space-around;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+			.watermark-text span {
+				display: inline-block;
+				margin: 20px 40px;
+			}
+
+		</style>
+	</head>
+	<body class="bg-main text-[#E0E0E0]">
+
+		<!-- INICIO DEL MODAL DE ACCIONES (BUY-IN, RE-BUY, CASH-OUT) -->
+	<div id="action-modal" class="modal">
+			<div class="modal-content">
+				 <!-- Marca de agua dentro del modal (visible solo en Buy-in para la personalización) -->
+				<div class="watermark-text">
+					<span>RIVERFLOW ADMIN</span>
+					<span>- AndresBG -</span>
+				</div>
+				
+				<div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4 relative z-10">
+					<h2 id="modal-title" class="text-xl font-bold text-gold"></h2>
+					<button onclick="closeModal()" class="text-[#B0B0B0] hover:text-white text-2xl leading-none">&times;</button>
+				</div>
+
+				<div class="space-y-4 relative z-10">
+					<!-- Selector de Jugador (Visible solo en Buy-in para nuevos) -->
+	<div id="player-select-container">
+						<label for="jugador-select" class="text-sm text-[#B0B0B0] block">Jugador</label>
+						<select id="jugador-select" class="w-full p-3 rounded-lg bg-[#1A1A1A] border border-gray-700 text-white focus:border-primary-accent">
+							<option>Silvia Ruiz</option>
+							<option>Andres Lopez</option>
+							<option selected>Jugador Nuevo</option>
+						</select>
+					</div>
+
+					<!-- Stack actual (Visible en Re-buy/Venta/Cash Out) -->
+					<p id="current-stack-info" class="text-sm text-[#B0B0B0] hidden"></p> 
+
+					<!-- Input de Monto -->
+	<label id="amount-label" for="amount-input" class="text-sm text-[#B0B0B0] block pt-2">Monto</label>
+					<input type="number" id="amount-input" value="20000" class="w-full p-3 rounded-lg bg-[#1A1A1A] border border-gray-700 text-white text-lg focus:border-primary-accent">
+
+					<!-- Opciones de Pago y Estado -->
+	<div class="grid grid-cols-2 gap-4 pt-4">
+						<div class="space-y-3">
+							<p class="text-sm text-[#B0B0B0]">Método de Pago</p>
+							<button id="btn-efectivo" class="w-full py-3 px-4 bg-success text-white font-semibold rounded-lg shadow-md hover:bg-success/80 transition flex items-center justify-center">
+								$ Efectivo
+							</button>
+							<button id="btn-transferencia" class="w-full py-3 px-4 bg-gray-700 text-white font-semibold rounded-lg shadow-md hover:bg-gray-600 transition flex items-center justify-center">
+								↻ Transferencia
+							</button>
+						</div>
+						<div class="space-y-3">
+							<p class="text-sm text-[#B0B0B0]">Estado</p>
+							<button id="btn-pagado" class="w-full py-3 px-4 bg-primary-accent text-white font-semibold rounded-lg shadow-md hover:bg-primary-accent/80 transition flex items-center justify-center">
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+								Pagado
+							</button>
+							<button id="btn-debe" class="w-full py-3 px-4 bg-gray-700 text-white font-semibold rounded-lg shadow-md hover:bg-gray-600 transition flex items-center justify-center">
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.328A1 1 0 019 2.5h2a1 1 0 01.743.828l1.5 8A1 1 0 0113 12h-3.136l.244 1.626A1 1 0 019 15H7a1 1 0 01-.136-.008L6.864 13H4a1 1 0 01-.996-.93l1.5-8z" clip-rule="evenodd" /></svg>
+								Debe
+							</button>
+						</div>
+					</div>
+
+					<!-- Botón de Acción Principal -->
+	<button id="main-action-button" class="w-full py-3 mt-4 bg-info text-white font-extrabold text-lg rounded-lg shadow-xl hover:bg-info/90 transition flex items-center justify-center space-x-2">
+						
+
+	</button>
+
+					<!-- Aviso de Maqueta -->
+	<div class="bg-[#D4AF37]/20 text-gold p-3 rounded-lg text-sm text-center border border-gold">
+						⚠️ Los cambios en este mockup no son permanentes.
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- FIN DEL MODAL DE ACCIONES -->
+
+	<header class="bg-[#1A1A1A] shadow-xl sticky top-0 z-50 border-b border-gray-800">
+			<nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+				<!-- Icono cambiado a corazón (♥️) -->
+				<div class="font-extrabold text-xl md:text-2xl text-gold">
+					♥️ RIVERFLOW ADMIN <span class="text-[#0B5345]">♠️</span>
+				</div>
+				<div class="space-x-4">
+					<a href="#features" class="text-[#E0E0E0] hover:text-gold font-medium hidden sm:inline transition duration-300">Características</a>
+				<a href="https://wa.me/573196592276?text=%C2%A1Hola!%20👋%20Estoy%20interesado%20en%20una%20demo%20gratuita%20de%20Poker%20Club%20Admin%20♠️.%20Mi%20club%20est%C3%A1%20en%20%F0%9F%87%A8%F0%9F%87%B4%20Colombia%2C%20en%20la%20ciudad%20de%20Medell%C3%ADn%2C%20y%20contamos%20con%20un%20promedio%20de%204%20mesas.%20Me%20gustar%C3%ADa%20conocer%20m%C3%A1s%20detalles%20sobre%20el%20sistema."
+	   target="_blank"
+	   class="bg-primary-accent hover:bg-[#0B5345]/80 text-white font-bold py-2 px-4 rounded-lg transition duration-300 shadow-md shadow-black/50">
+	   💬 Demo
+	</a>
+
+
+				</div>
+			</nav>
+		</header>
+
+		<main>
+			<section id="hero" class="bg-[#1A1A1A] pt-20 pb-24 md:pt-28 md:pb-32 border-b border-gray-800 watermark-container">
+				<!-- Marca de agua general actualizada -->
+	<div class="watermark-text">
+					<span>RIVERFLOW ADMIN - AndresBG</span>
+					<span>RIVERFLOW ADMIN - AndresBG</span>
+				</div>
+				<div class="container mx-auto px-6 text-center relative z-10">
+					<p class="text-primary-accent font-bold uppercase tracking-widest mb-3 text-sm">PÁGINA DEMO</p>
+					<h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight mb-6 tracking-wide">
+						El <span class="text-gold">ALL-IN</span> de la Gestión: <span class="text-gold">Totalmente Personalizable</span> para su Club de Poker.
+					</h1>
+					<p class="max-w-3xl mx-auto text-lg md:text-xl text-[#B0B0B0] mb-10 font-light">
+						RIVERFLOW ADMIN le proporciona la información total y la transparencia en vivo
+						necesaria para maximizar la rentabilidad de cada mesa y jugador.
+					</p>
+					<div class="flex justify-center gap-4 flex-wrap">
+				  <a href="https://wa.me/573196592276?text=%C2%A1Hola!%20👋%20Estoy%20interesado%20en%20conocer%20m%C3%A1s%20sobre%20Poker%20Club%20Admin%20%E2%99%A0%EF%B8%8F.%20Tengo%20un%20club%20en%20%5BCiudad%2C%20Pa%C3%ADs%5D%20con%20un%20promedio%20de%20%5BN%C3%BAmero%5D%20mesas%20activas%20y%20me%20gustar%C3%ADa%20agendar%20una%20demo%20para%20evaluar%20la%20plataforma."
+	   target="_blank"
+	   class="bg-primary-accent hover:bg-[#0B5345]/80 text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-300 shadow-xl shadow-black/40">
+	   💬 Solicitar una Demo
+	</a>
+
+
+						<a href="#features" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-300 shadow-xl shadow-black/40">
+							Ver Características
+						</a>
+					</div>
+				</div>
+			</section>
+
+			<section id="features" class="py-20 md:py-28 bg-[#1A1A1A]">
+				<div class="container mx-auto px-6 watermark-container">
+					<!-- Marca de agua general actualizada -->
+	<div class="watermark-text">
+						<span>RIVERFLOW ADMIN - AndresBG</span>
+						<span>RIVERFLOW ADMIN - AndresBG</span>
+					</div>
+					<h2 class="text-3xl md:text-4xl font-bold text-center text-gold mb-6 relative z-10">
+						Módulos y Funcionalidades
+					</h2>
+					<p class="text-center text-lg text-[#B0B0B0] mb-12 max-w-2xl mx-auto relative z-10">
+						Diseñado para la elegancia y la eficiencia, su nuevo Edge administrativo.
+					</p>
+
+					<div class="flex flex-wrap justify-center -mb-px space-x-2 md:space-x-4 relative z-10">
+						<button class="tab-btn text-sm md:text-base font-bold py-3 px-4 md:px-6 rounded-t-lg" data-tab="tab-mesas">
+							🗂️ Control Mesas
+						</button>
+						<button class="tab-btn text-sm md:text-base font-bold py-3 px-4 md:px-6 rounded-t-lg" data-tab="tab-jugador">
+							👤 Jugador 360°
+						</button>
+						<button class="tab-btn text-sm md:text-base font-bold py-3 px-4 md:px-6 rounded-t-lg" data-tab="tab-gestion">
+							💰 Gestión Central
+						</button>
+						<button class="tab-btn text-sm md:text-base font-bold py-3 px-4 md:px-6 rounded-t-lg" data-tab="tab-torneos">
+							🏆 Control Torneos
+						</button>
+						<button class="tab-btn text-sm md:text-base font-bold py-3 px-4 md:px-6 rounded-t-lg" data-tab="tab-alertas">
+							🔔 Smart Alerts
+						</button>
+						<button class="tab-btn text-sm md:text-base font-bold py-3 px-4 md:px-6 rounded-t-lg" data-tab="tab-reportes">
+							📊 Reportes Personalizables
+						</button>
+
+					</div>
+
+					<div class="bg-[#242424] p-8 md:p-12 rounded-b-lg rounded-tr-lg shadow-2xl shadow-black/60 border border-gray-700 relative z-10">
+						
+
+	<div id="tab-mesas" class="tab-content">
+	  <div class="grid lg:grid-cols-1 gap-8 md:gap-12 items-start">
+
+		<!-- Sección descriptiva -->
+		<div class="text-[#E0E0E0] text-base leading-relaxed mb-4 bg-[#1A1A1A] p-6 rounded-xl shadow-2xl shadow-black/70 border border-gray-700">
+		  <h3 class="text-2xl font-bold text-primary-accent mb-4">🎲 Control de Mesas en Tiempo Real</h3>
+		  <div class="space-y-2">
+			<p>♠️ <strong>Monitoreo total y en vivo.</strong> Supervisa cada mesa, jugador y movimiento en tiempo real.</p>
+			<p>♥️ <strong>Gestión automática de deudas.</strong> Controla quién debe, cuánto debe y desde cuándo. El sistema marca alertas visuales para que nada se pase por alto.</p>
+			<p>♦️ <strong>Cash Outs inteligentes.</strong> Realiza cierres rápidos, parciales o totales, con cálculo automático del balance final del jugador.</p>
+			<p>♣️ <strong>Pagos flexibles y registrados.</strong> Administra diferentes métodos de pago (efectivo, transferencia, fichas o créditos internos), todo con trazabilidad completa.</p>
+			<p>🃏 <strong>Transparencia y control.</strong> Cada acción queda registrada en el historial del jugador y disponible para reportes posteriores. Evita confusiones y lleva un control tipo casino profesional.</p>
+			<p>💼 <strong>Diseñado para administradores.</strong> Visualiza la rentabilidad por mesa, detecta fugas de efectivo y optimiza la operación del club sin depender de hojas o cálculos manuales.</p>
+		  </div>
+		</div>
+
+		<!-- Mesa activa -->
+		<div class="bg-[#1A1A1A] p-4 rounded-lg shadow-inner shadow-black/50 border border-gold space-y-2 text-sm">
+		  <h3 class="text-xl md:text-2xl font-bold text-gold mb-2 border-b border-gray-700 pb-2">Mesa Activa: High Stakes</h3>
+		  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+			<div class="text-center">
+			  <p class="text-[#B0B0B0] text-xs uppercase tracking-wider">Ciegas</p>
+			  <p class="text-white font-extrabold text-lg">2000 / 5000</p>
+			</div>
+			<div class="text-center">
+			  <p class="text-[#B0B0B0] text-xs uppercase tracking-wider">Jugadores</p>
+			  <p class="text-white font-extrabold text-lg">6 / 8</p>
+			</div>
+			<div class="text-center">
+			  <p class="text-[#B0B0B0] text-xs uppercase tracking-wider">Inversión Total</p>
+			  <p class="text-success font-extrabold text-lg">$4,200 <span class="text-xs text-[#B0B0B0]">(Prom $700)</span></p>
+			</div>
+			<div class="text-center">
+			  <button onclick="openModal('buyin')" class="w-full py-2 bg-primary-accent text-white font-bold rounded-lg hover:bg-[#0B5345]/80 transition shadow-md mt-1">
+				+ Sentar / Buy-in
+			  </button>
+			</div>
+		  </div>
+		</div>
+
+		<!-- Jugadores en mesa -->
+		<div class="overflow-x-auto">
+		  <h4 class="font-bold mb-4 text-gold text-lg">Maqueta: Jugadores en Mesa (Live Tracking)</h4>
+		  <div class="overflow-x-auto rounded-lg shadow-md border border-[#0B5345] bg-[#1A1A1A] p-2 -mx-2 sm:mx-0">
+			<table class="min-w-full text-left text-sm border-collapse">
+			  <thead>
+				<tr class="uppercase text-xs font-bold text-[#B0B0B0] border-b border-gray-700">
+				  <th class="p-3">JUGADOR</th>
+				  <th class="p-3 text-center">STACK</th>
+				  <th class="p-3 text-center">INVERSIÓN</th>
+				  <th class="p-3 text-center">ESTADO</th>
+				  <th class="p-3 text-center w-40">ACCIONES RÁPIDAS</th>
+				</tr>
+			  </thead>
+			  <tbody>
+				<!-- Jugador 1 -->
+				<tr class="border-b border-gray-800 hover:bg-[#242424] table-player-row">
+				  <td class="p-3 text-success font-semibold whitespace-nowrap">
+					Silvia Ruiz <span class="text-xs text-[#B0B0B0] block sm:inline">(#213)</span>
+				  </td>
+				  <td class="p-3 text-white font-mono text-center">$50,000</td>
+				  <td class="p-3 text-white font-mono text-center">$50,000</td>
+				  <td class="p-3 text-center">
+					<span class="bg-primary-accent/50 text-primary-accent text-xs font-semibold px-2 py-1 rounded-full">PAGADO</span>
+				  </td>
+				  <td class="p-3 space-x-1 flex justify-center items-center flex-wrap">
+					<button onclick="openModal('re-buy', 'Silvia Ruiz', 50000)" class="bg-blue-600 text-white text-xs px-2 py-1 rounded-lg hover:bg-blue-700 my-0.5">Re-Buy</button>
+					<button onclick="openModal('sell', 'Silvia Ruiz', 50000)" class="bg-success text-white text-xs px-2 py-1 rounded-lg hover:bg-success/80 my-0.5">Venta</button>
+					<button onclick="openModal('cash-out', 'Silvia Ruiz', 50000)" class="bg-gold/80 text-[#1A1A1A] text-xs px-2 py-1 rounded-lg hover:bg-gold my-0.5">Cash Out</button>
+				  </td>
+				</tr>
+
+				<!-- Jugador 2 -->
+				<tr class="border-b border-gray-800 hover:bg-[#242424] table-player-row">
+				  <td class="p-3 text-gold font-semibold whitespace-nowrap">
+					Andres Lopez <span class="text-xs text-[#B0B0B0] block sm:inline">(#088)</span>
+				  </td>
+				  <td class="p-3 text-white font-mono text-center">$45,000</td>
+				  <td class="p-3 text-white font-mono text-center">$50,000</td>
+				  <td class="p-3 text-center">
+					<span class="bg-yellow-800/50 text-gold text-xs font-semibold px-2 py-1 rounded-full">DEBE</span>
+				  </td>
+				  <td class="p-3 space-x-1 flex justify-center items-center flex-wrap">
+					<button onclick="openModal('re-buy', 'Andres Lopez', 45000)" class="bg-blue-600 text-white text-xs px-2 py-1 rounded-lg hover:bg-blue-700 my-0.5">Re-Buy</button>
+					<button onclick="openModal('sell', 'Andres Lopez', 45000)" class="bg-success text-white text-xs px-2 py-1 rounded-lg hover:bg-success/80 my-0.5">Venta</button>
+					<button onclick="openModal('cash-out', 'Andres Lopez', 45000)" class="bg-gold/80 text-[#1A1A1A] text-xs px-2 py-1 rounded-lg hover:bg-gold my-0.5">Cash Out</button>
+				  </td>
+				</tr>
+
+				<!-- Jugador 3 -->
+				<tr class="border-b border-gray-800 hover:bg-[#242424] table-player-row">
+				  <td class="p-3 text-white font-semibold whitespace-nowrap">
+					Maria García <span class="text-xs text-[#B0B0B0] block sm:inline">(#345)</span>
+				  </td>
+				  <td class="p-3 text-white font-mono text-center">$72,000</td>
+				  <td class="p-3 text-white font-mono text-center">$70,000</td>
+				  <td class="p-3 text-center">
+					<span class="bg-green-800/50 text-success text-xs font-semibold px-2 py-1 rounded-full">JUGANDO</span>
+				  </td>
+				  <td class="p-3 space-x-1 flex justify-center items-center flex-wrap">
+					<button onclick="openModal('re-buy', 'Maria García', 72000)" class="bg-blue-600 text-white text-xs px-2 py-1 rounded-lg hover:bg-blue-700 my-0.5">Re-Buy</button>
+					<button onclick="openModal('sell', 'Maria García', 72000)" class="bg-success text-white text-xs px-2 py-1 rounded-lg hover:bg-success/80 my-0.5">Venta</button>
+					<button onclick="openModal('cash-out', 'Maria García', 72000)" class="bg-gold/80 text-[#1A1A1A] text-xs px-2 py-1 rounded-lg hover:bg-gold my-0.5">Cash Out</button>
+				  </td>
+				</tr>
+			  </tbody>
+			</table>
+		  </div>
+		</div>
+
+	  </div>
+	</div>
+								   
+
+	<div id="tab-jugador" class="tab-content" class="tab-content active">
+							<div class="grid lg:grid-cols-2 gap-8 md:gap-12 items-start">
+	<div class="bg-[#1A1A1A] p-6 rounded-lg shadow-md border border-[#0B5345]">
+		<h3 class="text-2xl font-bold text-primary-accent mb-4 flex items-center space-x-2">
+			<span>👤</span>
+			<span>Ficha de Jugador 360° (Player Hub)</span>
+		</h3>
+		<p class="text-[#E0E0E0] text-base leading-relaxed mb-6">
+			Accede a un <span class="text-gold font-semibold">análisis completo</span> de cada jugador: 
+		</p>
+		<ul class="list-none space-y-2 text-[#C0C0C0]">
+			<li class="flex items-center space-x-2">
+				<span class="text-red-500">❤️</span>
+				<span><span class="font-semibold text-white">Horas Reales de Juego</span> – Monitorea la actividad auténtica del jugador.</span>
+			</li>
+			<li class="flex items-center space-x-2">
+				<span class="text-black">♠️</span>
+				<span><span class="font-semibold text-white">Historial de Mesas</span> – Revisa el desempeño en distintas mesas.</span>
+			</li>
+			<li class="flex items-center space-x-2">
+				<span class="text-black">♣️</span>
+				<span><span class="font-semibold text-white">Rendimiento (EV/ROI)</span> – Evalúa resultados estratégicos y ganancias reales.</span>
+			</li>
+			<li class="flex items-center space-x-2">
+				<span class="text-red-500">♦️</span>
+				<span><span class="font-semibold text-white">GTO-Compliance</span> – Analiza la adherencia a estrategias óptimas.</span>
+			</li>
+			<li class="flex items-center space-x-2">
+				<span class="text-red-500">❤️</span>
+				<span><span class="font-semibold text-white">Jackpots</span> – Control de premios y ganancias extra.</span>
+			</li>
+			<li class="flex items-center space-x-2">
+				<span class="text-black">♠️</span>
+				<span><span class="font-semibold text-white">Sistema VIP</span> – Seguimiento de fidelización y recompensas.</span>
+			</li>
+		</ul>
+		<p class="text-[#A0A0A0] text-sm mt-4">
+			Datos reales basados en juego auténtico, no en sesiones ganadas, para evaluar el verdadero valor del jugador.
+		</p>
+	</div>
+
+								
+
+	<div class="bg-[#1A1A1A] p-6 rounded-xl shadow-2xl shadow-black/70 border border-gold transform hover:scale-[1.01] transition duration-300">
+									<h4 class="font-extrabold text-center mb-6 text-gold text-xl uppercase tracking-wider">Perfil Alex "The Hammer" Johnson</h4>
+									
+									<div class="flex items-center justify-center mb-6 border-b border-gray-700 pb-4">
+										<div class="w-16 h-16 bg-gold rounded-full flex items-center justify-center font-extrabold text-[#1A1A1A] text-3xl mr-4 border-2 border-primary-accent">AJ</div>
+										<div class="text-left">
+											<h5 class="font-bold text-xl text-white">Alex "The Hammer" Johnson</h5>
+											<p class="text-sm text-primary-accent font-semibold tracking-wide">Estatus: VIP DIAMANTE</p>
+										</div>
+									</div>
+
+									
+
+	<div class="grid grid-cols-3 gap-4 mb-6">
+										<div class="bg-gray-900 p-3 rounded-lg text-center border border-gray-700 shadow-md">
+											<p class="text-xs text-[#B0B0B0] uppercase">Rendimiento (ROI)</p>
+											<h6 class="font-extrabold text-lg text-success mt-1">+21.3%</h6>
+										</div>
+										<div class="bg-gray-900 p-3 rounded-lg text-center border border-gray-700 shadow-md">
+											<p class="text-xs text-[#B0B0B0] uppercase">Horas Reales</p>
+											<h6 class="font-extrabold text-lg text-white mt-1">520h</h6>
+										</div>
+										<div class="bg-gray-900 p-3 rounded-lg text-center border border-gray-700 shadow-md">
+											<p class="text-xs text-[#B0B0B0] uppercase">Fidelidad (Puntos)</p>
+											<h6 class="font-extrabold text-lg text-gold mt-1">12,450</h6>
+										</div>
+									</div>
+
+									
+
+	<div class="space-y-3 bg-[#242424] p-4 rounded-lg border border-gray-700">
+										<div class="flex justify-between items-center text-sm">
+											<p class="text-[#B0B0B0] font-semibold">GTO Compliance Score:</p>
+											<p class="text-success font-bold text-lg">92%</p>
+										</div>
+										<div class="w-full h-2 bg-gray-700 rounded-full">
+											<div class="h-2 bg-success rounded-full" style="width: 92%;"></div>
+										</div>
+										<div class="flex justify-between items-center text-sm">
+											<p class="text-[#B0B0B0] font-semibold">EV por Hora (Expected Value):</p>
+											<p class="text-white font-bold text-lg">$12.50</p>
+										</div>
+										
+									</div>
+
+									<h6 class="font-bold text-gold text-sm mt-6 mb-2 border-t border-gray-700 pt-3">Historial Reciente (Últimos 3):</h6>
+									<ul class="text-xs text-[#B0B0B0] space-y-1 bg-[#1A1A1A] p-2 rounded">
+										<li class="flex justify-between"><span>Mesa High Stakes (Hoy)</span> <span class="text-success font-semibold">+$320</span></li>
+										<li class="flex justify-between"><span>Mesa 3/5 (Ayer)</span> <span class="text-error font-semibold">-$150</span></li>
+										<li class="flex justify-between"><span>Torneo Freezeout</span> <span class="text-white font-semibold">+$1,200</span></li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					 
+
+	<div id="tab-gestion" class="tab-content">
+	  <div class="grid lg:grid-cols-2 gap-8 md:gap-12 items-start">
+		<div>
+		  <h3 class="text-2xl font-bold text-primary-accent mb-4">
+			💰 Hub Central de Gestión (Caja Unificada)
+		  </h3>
+		  <div class="text-[#E0E0E0] text-base leading-relaxed mb-6 space-y-2">
+			<p>🎯 <strong>Visión global sin complicaciones.</strong> Supervisa cada área de tu club desde una sola vista intuitiva.</p>
+			<p>♥️ <strong>Reportes al instante.</strong> Accede fácilmente a <em>Flujo de Caja</em>, <em>Torneos</em>, <em>Consumos</em> e <em>Inventario</em> con solo un clic.</p>
+			<p>♠️ <strong>Gestión inteligente.</strong> Diseñamos un <em>back-end</em> ágil y simplificado para que te concentres en la rentabilidad, no en la complejidad.</p>
+			<p>♣️ <strong>Optimiza tu tiempo.</strong> Menos procesos manuales, más control y resultados en tiempo real.</p>
+			<p>♦️ <strong>Todo bajo control.</strong> Desde el movimiento de fichas hasta los gastos del bar, todo queda registrado y ordenado.</p>
+		  </div>
+		</div>
+
+		<div class="bg-[#1A1A1A] p-6 rounded-xl shadow-2xl shadow-black/70 border border-gray-700">
+		  <h4 class="font-bold text-center mb-4 text-gold">
+			Maqueta: Dashboard de Métricas Clave
+		  </h4>
+
+		  <div class="mb-5 p-3 bg-gray-900 rounded-lg border border-primary-accent">
+			<h5 class="text-sm font-semibold text-gold mb-2">Filtro Temporal de Reporte</h5>
+			<div class="grid grid-cols-2 gap-3 text-sm">
+			  <div>
+				<label for="fecha-inicio" class="text-xs text-[#B0B0B0] block mb-1">Desde:</label>
+				<input
+				  type="date"
+				  id="fecha-inicio"
+				  value="2024-10-01"
+				  class="w-full p-2 bg-[#1A1A1A] border border-gray-700 rounded-md text-white focus:border-gold"
+				/>
+			  </div>
+			  <div>
+				<label for="fecha-fin" class="text-xs text-[#B0B0B0] block mb-1">Hasta:</label>
+				<input
+				  type="date"
+				  id="fecha-fin"
+				  value="2024-10-31"
+				  class="w-full p-2 bg-[#1A1A1A] border border-gray-700 rounded-md text-white focus:border-gold"
+				/>
+			  </div>
+			</div>
+		  </div>
+
+		  <div class="grid grid-cols-2 gap-4">
+			<div class="bg-gray-900 p-4 rounded-lg shadow-md border border-success">
+			  <p class="text-sm text-[#B0B0B0]">Beneficio Neto (Período)</p>
+			  <h5 class="font-bold text-2xl text-success">+$15,250</h5>
+			</div>
+			<div class="bg-gray-900 p-4 rounded-lg shadow-md border border-primary-accent">
+			  <p class="text-sm text-[#B0B0B0]">Rentabilidad (ROI Total)</p>
+			  <h5 class="font-bold text-2xl text-primary-accent">+18.5%</h5>
+			</div>
+			<div class="bg-gray-900 p-4 rounded-lg shadow-md border border-gold col-span-2">
+			  <p class="text-sm text-[#B0B0B0]">Deudas Pendientes (Jugadores)</p>
+			  <h5 class="font-bold text-2xl text-white">4 Cuentas ($1,890)</h5>
+			</div>
+		  </div>
+		</div>
+	  </div>
+	</div>            
+
+	<div id="tab-torneos" class="tab-content">
+							<div class="grid lg:grid-cols-2 gap-8 md:gap-12 items-start">
+								<div>
+									<h3 class="text-2xl font-bold text-primary-accent mb-4">🏆 Control en Tiempo Real de Torneos</h3>
+									<p class="text-[#E0E0E0] text-base leading-relaxed mb-6">
+										Gestión completa de **entradas, reentradas, add-ons** y el control en vivo de jugadores y mesas. Su herramienta para ejecutar torneos fluidos y transparentes.
+									</p>
+								</div>
+								<div class="bg-[#1A1A1A] p-6 rounded-xl shadow-2xl shadow-black/70 border border-gold">
+									<h4 class="font-extrabold text-center mb-4 text-gold text-xl">Torneo Activo: Deepstack 10K Gtd</h4>
+
+									
+
+	<div class="grid grid-cols-3 gap-3 mb-6 p-4 bg-gray-900 rounded-lg border border-primary-accent">
+										<div class="text-center">
+											<p class="text-xs text-[#B0B0B0] uppercase">Jugadores Restantes</p>
+											<h6 class="font-extrabold text-2xl text-white mt-1">45</h6>
+										</div>
+										<div class="text-center">
+											<p class="text-xs text-[#B0B0B0] uppercase">Entradas / Reentradas</p>
+											<h6 class="font-extrabold text-2xl text-success mt-1">82 / 18</h6>
+										</div>
+										<div class="text-center">
+											<p class="text-xs text-[#B0B0B0] uppercase">Premio Acumulado</p>
+											<h6 class="font-extrabold text-2xl text-gold mt-1">$10,000</h6>
+										</div>
+									</div>
+
+									
+
+	<h5 class="font-bold text-gold text-sm mb-3 border-b border-gray-700 pb-2">Control de Mesas y Asientos:</h5>
+									<div class="space-y-3">
+										<div class="flex justify-between items-center bg-[#242424] p-3 rounded-lg border border-gray-700 hover:bg-[#2e2e2e] cursor-pointer">
+											<p class="font-semibold text-white">Mesa 1 (10/10 Jugadores)</p>
+											<button class="bg-primary-accent text-white text-xs px-3 py-1 rounded-full hover:bg-[#0B5345]/80">Ver Detalle</button>
+										</div>
+										<div class="flex justify-between items-center bg-[#242424] p-3 rounded-lg border border-gray-700 hover:bg-[#2e2e2e] cursor-pointer">
+											<p class="font-semibold text-white">Mesa 2 (9/10 Jugadores)</p>
+											<button class="bg-primary-accent text-white text-xs px-3 py-1 rounded-full hover:bg-[#0B5345]/80">Ver Detalle</button>
+										</div>
+										<div class="flex justify-between items-center bg-[#242424] p-3 rounded-lg border border-gray-700 hover:bg-[#2e2e2e] cursor-pointer">
+											<p class="font-semibold text-white">Mesa 3 (4/10 Jugadores)</p>
+											<button class="bg-primary-accent text-white text-xs px-3 py-1 rounded-full hover:bg-[#0B5345]/80">Ver Detalle</button>
+										</div>
+									</div>
+
+									<h5 class="font-bold text-gold text-sm mt-6 mb-3 border-b border-gray-700 pb-2">Acciones de Torneo:</h5>
+									<div class="grid grid-cols-2 gap-4">
+										<button onclick="openModal('buyin')" class="py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition shadow-md">
+											+ Añadir Jugador
+										</button>
+										<button class="py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition shadow-md">
+											Eliminar Jugador
+										</button>
+										<button class="py-3 bg-success text-white font-bold rounded-lg hover:bg-success/80 transition shadow-md col-span-2">
+											Finalizar Período de Registro
+										</button>
+									</div>
+								</div>
+							</div>
+						</div>
+						
+						
+
+	<div id="tab-alertas" class="tab-content">
+							<div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+								<div>
+									<h3 class="text-2xl font-bold text-primary-accent mb-4">🔔 Notificaciones Inteligentes (Smart Alerts)</h3>
+									<p class="text-[#E0E0E0] text-base leading-relaxed mb-6">
+										Alertas **<span class="text-gold text-4xl block font-extrabold uppercase">PERSONALIZABLES</span>** de próximos eventos a jugadores, grupos específicos o redes sociales. Un sistema proactivo que mantiene a su comunidad enganchada y lista para jugar.
+									</p>
+								</div>
+								<div class="bg-[#1A1A1A] p-6 rounded-lg shadow-inner shadow-black/50 border border-gray-700">
+									<h4 class="font-bold text-center mb-4 text-gold">Maqueta: Promoción de Poker (Impacto Visual)</h4>
+									<div class="bg-gray-900 p-5 rounded-lg shadow-2xl border border-primary-accent text-center relative overflow-hidden">
+										
+
+	<div class="absolute inset-0 bg-primary-accent opacity-10"></div>
+										<div class="relative z-10">
+											<p class="text-5xl mb-3 animate-pulse">♠️♥️</p>
+											<h5 class="font-extrabold text-2xl text-gold mb-2 uppercase tracking-wide">
+												¡Doble Puntos VIP!
+											</h5>
+											<p class="text-lg text-white mb-4">
+												Hoy en High Stakes: Cada mano cuenta el doble para tu estatus DIAMANTE.
+											</p>
+											<input type="text" placeholder="Asunto: ¡Doble Puntos VIP Hoy!" class="w-full p-2 border border-gray-700 bg-[#1A1A1A] text-white rounded-md mb-3 text-sm focus:border-gold">
+											<textarea placeholder="Mensaje: Recuerda, tu fidelidad tiene premio. Juega ahora y acelera tu estatus VIP." rows="2" class="w-full p-2 border border-gray-700 bg-[#1A1A1A] text-white rounded-md mb-3 text-sm focus:border-gold"></textarea>
+											
+											<button class="bg-primary-accent hover:bg-[#0B5345]/80 text-white font-bold py-2 px-4 rounded-lg text-sm transition duration-300 w-full shadow-md shadow-black/40">
+												Enviar Alerta (WhatsApp & Redes)
+											</button>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+	<div id="tab-reportes" class="tab-content">
+		<div class="grid lg:grid-cols-2 gap-8 md:gap-12 items-start">
+
+			<div>
+				<h3 class="text-2xl font-bold text-primary-accent mb-4">📊 Reportes a Medida</h3>
+				<p class="text-[#E0E0E0] text-base leading-relaxed mb-6">
+					Configure reportes según las necesidades de su club: <strong>Balances contables, auxiliares, flujo de caja, ingresos por torneo y consumos</strong>. Exportación en PDF y CSV para análisis offline.
+				</p>
+
+				<div class="bg-gray-900 p-4 rounded-lg border border-gold mb-4">
+					<h5 class="text-sm font-semibold text-gold mb-2">Seleccionar Tipo de Reporte</h5>
+					<select class="w-full p-2 bg-[#1A1A1A] border border-gray-700 rounded-md text-white focus:border-gold">
+						<option>Balance General</option>
+						<option>Auxiliares de Caja</option>
+						<option>Reporte de Torneos</option>
+						<option>Flujo de Caja</option>
+						<option>Consumos de Jugadores</option>
+					</select>
+				</div>
+
+				<div class="bg-gray-900 p-4 rounded-lg border border-primary-accent mb-4">
+					<h5 class="text-sm font-semibold text-primary-accent mb-2">Filtro de Fecha</h5>
+					<div class="grid grid-cols-2 gap-3 text-sm">
+						<div>
+							<label class="text-xs text-[#B0B0B0] block mb-1">Desde:</label>
+							<input type="date" class="w-full p-2 bg-[#1A1A1A] border border-gray-700 rounded-md text-white focus:border-primary-accent">
+						</div>
+						<div>
+							<label class="text-xs text-[#B0B0B0] block mb-1">Hasta:</label>
+							<input type="date" class="w-full p-2 bg-[#1A1A1A] border border-gray-700 rounded-md text-white focus:border-primary-accent">
+						</div>
+					</div>
+				</div>
+
+				<button class="w-full py-3 mt-2 bg-gold text-[#1A1A1A] font-bold rounded-lg hover:bg-gold/80 transition shadow-md">
+					Generar Reporte
+				</button>
+
+			</div>
+
+			<div class="bg-[#1A1A1A] p-6 rounded-xl shadow-2xl shadow-black/70 border border-gray-700">
+				<h4 class="font-bold text-center mb-4 text-gold">Vista Previa del Reporte</h4>
+				<div class="overflow-x-auto">
+					<table class="min-w-full text-left text-sm border border-gray-700">
+						<thead>
+							<tr class="uppercase text-xs font-bold text-[#B0B0B0] border-b border-gray-700">
+								<th class="p-3">Cuenta</th>
+								<th class="p-3 text-center">Debe</th>
+								<th class="p-3 text-center">Haber</th>
+								<th class="p-3 text-center">Saldo</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr class="border-b border-gray-800 hover:bg-[#242424]">
+								<td class="p-3">Caja Principal</td>
+								<td class="p-3 text-center">$5,000</td>
+								<td class="p-3 text-center">$1,200</td>
+								<td class="p-3 text-center text-success font-bold">$3,800</td>
+							</tr>
+							<tr class="border-b border-gray-800 hover:bg-[#242424]">
+								<td class="p-3">Torneos</td>
+								<td class="p-3 text-center">$3,200</td>
+								<td class="p-3 text-center">$500</td>
+								<td class="p-3 text-center text-success font-bold">$2,700</td>
+							</tr>
+							<tr class="border-b border-gray-800 hover:bg-[#242424]">
+								<td class="p-3">Consumos</td>
+								<td class="p-3 text-center">$800</td>
+								<td class="p-3 text-center">$400</td>
+								<td class="p-3 text-center text-success font-bold">$400</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+	  </div>
+					</div>
+				</div>
+			</section>
+
+			<section id="demo" class="py-20 md:py-28 bg-[#1A1A1A] border-t border-gray-800 watermark-container">
+				<!-- Marca de agua general actualizada -->
+	<div class="watermark-text">
+					<span>RIVERFLOW ADMIN - AndresBG</span>
+					<span>RIVERFLOW ADMIN - AndresBG</span>
+				</div>
+				<div class="container mx-auto px-6 text-center relative z-10">
+					<h2 class="text-3xl md:text-4xl font-extrabold mb-6 text-gold">
+						🚀 Escalabilidad y Control Premium.
+					</h2>
+					<p class="text-lg md:text-xl text-[#B0B0B0] max-w-2xl mx-auto mb-10">
+						Dé el salto a una gestión profesional. Vaya All-In en el futuro de su club.
+					</p>
+			  <a href="https://wa.me/573196592276?text=%C2%A1Hola!%20👋%20Estoy%20interesado%20en%20conocer%20m%C3%A1s%20sobre%20Poker%20Club%20Admin%20%E2%99%A0%EF%B8%8F.%20Tengo%20un%20club%20en%20%5BCiudad%2C%20Pa%C3%ADs%5D%20con%20un%20promedio%20de%20%5BN%C3%BAmero%5D%20mesas%20activas%20y%20me%20gustar%C3%ADa%20agendar%20una%20demo%20para%20evaluar%20la%20plataforma."
+	   target="_blank"
+	   class="bg-primary-accent hover:bg-[#0B5345]/80 text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-300 shadow-xl shadow-black/40">
+	   💬 Solicitar una Demo
+	</a>
+
+
+				</div>
+			</section>
+		</main>
+
+		<footer class="bg-black text-[#B0B0B0] py-6">
+			<div class="container mx-auto px-6 text-center">
+				<p class="text-sm mb-1">Página Demo Temporal</p>
+				<p class="text-xs text-gray-500">Propiedad Intelectual y Derechos Reservados © 2025 Andrés Babativa Goyeneche</p>
+			</div>
+		</footer>
+
+		<script>
+			// ESTE JAVASCRIPT ES UN MOCKUP Y UNA CAPTURA DE PANTALLA FUNCIONAL.
+			// LAS FUNCIONES AQUÍ SON SÓLO PARA DEMOSTRAR EL ASPECTO VISUAL Y LA INTERACCIÓN SIMULADA DEL MODAL.
+			// NO HAY LÓGICA DE NEGOCIO REAL O PERSISTENCIA DE DATOS IMPLEMENTADA AQUÍ.
+			
+			// Referencias del Modal
+			const actionModal = document.getElementById('action-modal');
+			const modalTitle = document.getElementById('modal-title');
+			const playerSelectContainer = document.getElementById('player-select-container');
+			const jugadorSelect = document.getElementById('jugador-select');
+			const currentStackInfo = document.getElementById('current-stack-info');
+			const amountLabel = document.getElementById('amount-label');
+			const amountInput = document.getElementById('amount-input');
+			const mainActionButton = document.getElementById('main-action-button');
+
+			// Función para abrir el modal con contenido dinámico (Buy-in, Re-buy, Venta, Cash Out)
+			function openModal(type, playerName = '', currentStack = 0) {
+				let title = '';
+				let amountLabelText = '';
+				let buttonText = '';
+				let buttonIcon = '';
+				let buttonColorClass = '';
+
+				// Resetear visibilidad de elementos específicos
+				playerSelectContainer.classList.add('hidden');
+				currentStackInfo.classList.add('hidden');
+
+				// Control de la marca de agua en el modal (ocultar para Re-Buy, Venta y Cash Out)
+				const modalWatermark = actionModal.querySelector('.modal-content .watermark-text');
+				if (modalWatermark) {
+					if (type === 'buyin') {
+						modalWatermark.style.display = 'flex'; // Mostrar para Buy-in (para la personalización)
+					} else {
+						modalWatermark.style.display = 'none'; // Ocultar para otros
+					}
+				}
+
+
+				switch (type) {
+					case 'buyin':
+						title = 'Buy-in en Mesa 2000/5000';
+						amountLabelText = 'Monto Buy-in';
+						buttonText = 'Sentar Jugador';
+						buttonIcon = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>';
+						buttonColorClass = 'bg-success hover:bg-success/90';
+						amountInput.value = 50000; // Valor por defecto
+						playerSelectContainer.classList.remove('hidden'); // Mostrar el selector de jugador
+						break;
+					case 're-buy':
+						title = `Re-Buy para ${playerName}`;
+						currentStackInfo.textContent = `Stack actual: $${currentStack.toLocaleString('es-CO')}`;
+						currentStackInfo.classList.remove('hidden');
+						amountLabelText = 'Monto del Re-Buy';
+						buttonText = 'Confirmar Re-Buy';
+						buttonIcon = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>';
+						buttonColorClass = 'bg-info hover:bg-info/90';
+						amountInput.value = 20000; // Valor por defecto para re-buy
+						break;
+					case 'sell':
+						title = `Venta para ${playerName}`;
+						currentStackInfo.textContent = `Stack actual: $${currentStack.toLocaleString('es-CO')}`;
+						currentStackInfo.classList.remove('hidden');
+						amountLabelText = 'Monto de Venta';
+						buttonText = 'Confirmar Venta';
+						buttonIcon = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1L15 4H9l-.401 1.001A2.999 2.999 0 0012 8zm-7 0a3 3 0 013-3h8a3 3 0 013 3m-13 6l2-2m0 0l2-2m-2 2l-2-2m2 2l2-2m-2 2l2-2m2 2l2-2" /></svg>';
+						buttonColorClass = 'bg-success hover:bg-success/90';
+						amountInput.value = Math.min(25000, currentStack); // Sugerir un monto, no más que el stack
+						break;
+					case 'cash-out':
+						title = `Cash Out para ${playerName}`;
+						currentStackInfo.textContent = `Stack final: $${currentStack.toLocaleString('es-CO')}`;
+						currentStackInfo.classList.remove('hidden');
+						amountLabelText = 'Monto a Retirar';
+						buttonText = 'Confirmar Cash Out';
+						buttonIcon = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>';
+						buttonColorClass = 'bg-error hover:bg-error/90';
+						amountInput.value = currentStack; // Sugerir el stack completo
+						break;
+				}
+
+				modalTitle.textContent = title;
+				amountLabel.textContent = amountLabelText;
+				mainActionButton.innerHTML = `${buttonIcon}<span>${buttonText}</span>`;
+				mainActionButton.className = `w-full py-3 mt-4 text-white font-extrabold text-lg rounded-lg shadow-xl transition flex items-center justify-center space-x-2 ${buttonColorClass}`;
+				
+				// Setear el jugador seleccionado si no es un buy-in
+				if (playerName && type !== 'buyin') {
+					const existingOption = Array.from(jugadorSelect.options).find(option => option.textContent === playerName);
+					if (existingOption) {
+						jugadorSelect.value = playerName;
+					} else {
+						// Si el jugador no está en la lista (para el mockup)
+						const newOption = new Option(playerName, playerName, true, true);
+						jugadorSelect.add(newOption);
+					}
+				}
+
+
+				actionModal.style.display = 'flex';
+			}
+
+			// Función para cerrar el Modal
+			function closeModal() {
+				actionModal.style.display = 'none';
+			}
+			window.onclick = function(event) {
+				if (event.target == actionModal) {
+					closeModal();
+				}
+			}
+
+			// Script de control de pestañas
+			document.addEventListener('DOMContentLoaded', () => {
+				const tabs = document.querySelectorAll('.tab-btn');
+				const contents = document.querySelectorAll('.tab-content');
+
+				// Activar la pestaña Smart Alerts por defecto
+				document.querySelector('[data-tab="tab-alertas"]').classList.add('active');
+				document.getElementById('tab-alertas').classList.add('active');
+
+
+				tabs.forEach(tab => {
+					tab.addEventListener('click', () => {
+						const target = tab.getAttribute('data-tab');
+						
+						tabs.forEach(t => t.classList.remove('active'));
+						tab.classList.add('active');
+						
+						contents.forEach(c => {
+							c.classList.remove('active');
+							if (c.id === target) {
+								c.classList.add('active');
+							}
+						});
+					});
+				});
+
+				// Script de scroll suave para links de navegación
+				const navLinks = document.querySelectorAll('a[href^="#"]');
+				navLinks.forEach(link => {
+					link.addEventListener('click', function(e) {
+						e.preventDefault();
+						const targetId = this.getAttribute('href');
+						const targetElement = document.querySelector(targetId);
+						if (targetElement) {
+							const headerOffset = 64; 
+							const elementPosition = targetElement.getBoundingClientRect().top;
+							const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+							window.scrollTo({
+								top: offsetPosition,
+								behavior: 'smooth'
+							});
+						}
+					});
+				});
+			});
+		</script>
+	</body>
+	</html>
