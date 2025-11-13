@@ -300,6 +300,10 @@
                     <button class="tab-btn active text-sm md:text-base font-bold py-3 px-4 md:px-6 rounded-t-lg" data-tab="tab-alertas">
                         🔔 Smart Alerts
                     </button>
+					<button class="tab-btn text-sm md:text-base font-bold py-3 px-4 md:px-6 rounded-t-lg" data-tab="tab-reportes">
+						📊 Reportes Personalizables
+					</button>
+
                 </div>
 
                 <div class="bg-[#242424] p-8 md:p-12 rounded-b-lg rounded-tr-lg shadow-2xl shadow-black/60 border border-gray-700 relative z-10">
@@ -619,6 +623,86 @@
                             </div>
                         </div>
                     </div>
+
+<div id="tab-reportes" class="tab-content">
+    <div class="grid lg:grid-cols-2 gap-8 md:gap-12 items-start">
+
+        <div>
+            <h3 class="text-2xl font-bold text-primary-accent mb-4">📊 Reportes a Medida</h3>
+            <p class="text-[#E0E0E0] text-base leading-relaxed mb-6">
+                Configure reportes según las necesidades de su club: <strong>Balances contables, auxiliares, flujo de caja, ingresos por torneo y consumos</strong>. Exportación en PDF y CSV para análisis offline.
+            </p>
+
+            <div class="bg-gray-900 p-4 rounded-lg border border-gold mb-4">
+                <h5 class="text-sm font-semibold text-gold mb-2">Seleccionar Tipo de Reporte</h5>
+                <select class="w-full p-2 bg-[#1A1A1A] border border-gray-700 rounded-md text-white focus:border-gold">
+                    <option>Balance General</option>
+                    <option>Auxiliares de Caja</option>
+                    <option>Reporte de Torneos</option>
+                    <option>Flujo de Caja</option>
+                    <option>Consumos de Jugadores</option>
+                </select>
+            </div>
+
+            <div class="bg-gray-900 p-4 rounded-lg border border-primary-accent mb-4">
+                <h5 class="text-sm font-semibold text-primary-accent mb-2">Filtro de Fecha</h5>
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <label class="text-xs text-[#B0B0B0] block mb-1">Desde:</label>
+                        <input type="date" class="w-full p-2 bg-[#1A1A1A] border border-gray-700 rounded-md text-white focus:border-primary-accent">
+                    </div>
+                    <div>
+                        <label class="text-xs text-[#B0B0B0] block mb-1">Hasta:</label>
+                        <input type="date" class="w-full p-2 bg-[#1A1A1A] border border-gray-700 rounded-md text-white focus:border-primary-accent">
+                    </div>
+                </div>
+            </div>
+
+            <button class="w-full py-3 mt-2 bg-gold text-[#1A1A1A] font-bold rounded-lg hover:bg-gold/80 transition shadow-md">
+                Generar Reporte
+            </button>
+
+        </div>
+
+        <div class="bg-[#1A1A1A] p-6 rounded-xl shadow-2xl shadow-black/70 border border-gray-700">
+            <h4 class="font-bold text-center mb-4 text-gold">Vista Previa del Reporte</h4>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-left text-sm border border-gray-700">
+                    <thead>
+                        <tr class="uppercase text-xs font-bold text-[#B0B0B0] border-b border-gray-700">
+                            <th class="p-3">Cuenta</th>
+                            <th class="p-3 text-center">Debe</th>
+                            <th class="p-3 text-center">Haber</th>
+                            <th class="p-3 text-center">Saldo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-gray-800 hover:bg-[#242424]">
+                            <td class="p-3">Caja Principal</td>
+                            <td class="p-3 text-center">$5,000</td>
+                            <td class="p-3 text-center">$1,200</td>
+                            <td class="p-3 text-center text-success font-bold">$3,800</td>
+                        </tr>
+                        <tr class="border-b border-gray-800 hover:bg-[#242424]">
+                            <td class="p-3">Torneos</td>
+                            <td class="p-3 text-center">$3,200</td>
+                            <td class="p-3 text-center">$500</td>
+                            <td class="p-3 text-center text-success font-bold">$2,700</td>
+                        </tr>
+                        <tr class="border-b border-gray-800 hover:bg-[#242424]">
+                            <td class="p-3">Consumos</td>
+                            <td class="p-3 text-center">$800</td>
+                            <td class="p-3 text-center">$400</td>
+                            <td class="p-3 text-center text-success font-bold">$400</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
 
                 </div>
             </div>
