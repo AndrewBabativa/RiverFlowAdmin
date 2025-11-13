@@ -339,72 +339,74 @@
                             
 
 <div class="overflow-x-auto">
-                                <h4 class="font-bold mb-4 text-gold text-lg">Maqueta: Jugadores en Mesa (Live Tracking)</h4>
-                                <div class="bg-[#1A1A1A] p-2 rounded-lg shadow-md border border-[#0B5345]">
-                                    <table class="min-w-full text-left text-sm">
-                                        <thead>
-                                            <tr class="uppercase text-xs font-bold text-[#B0B0B0] border-b border-gray-700">
-                                                <th class="p-3">JUGADOR</th>
-                                                <th class="p-3 text-center">STACK</th>
-                                                <th class="p-3 text-center">INVERSIÓN</th>
-                                                <th class="p-3 text-center">ESTADO</th>
-                                                <th class="p-3 text-center w-40">ACCIONES RÁPIDAS</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            
+<h4 class="font-bold mb-4 text-gold text-lg">Maqueta: Jugadores en Mesa (Live Tracking)</h4>
 
-<tr class="border-b border-gray-800 hover:bg-[#242424] table-player-row">
-                                                <td class="p-3 text-success font-semibold whitespace-nowrap">
-                                                    Silvia Ruiz <span class="text-xs text-[#B0B0B0] block sm:inline">(#213)</span>
-                                                </td>
-                                                <td class="p-3 text-white font-mono text-center">$50,000</td>
-                                                <td class="p-3 text-white font-mono text-center">$50,000</td>
-                                                <td class="p-3 text-center">
-                                                    <span class="bg-primary-accent/50 text-primary-accent text-xs font-semibold px-2 py-1 rounded-full">PAGADO</span>
-                                                </td>
-                                                <td class="p-3 space-x-1 flex justify-center items-center flex-wrap">
-                                                    <button onclick="openModal('re-buy', 'Silvia Ruiz', 50000)" class="bg-blue-600 text-white text-xs px-2 py-1 rounded-lg hover:bg-blue-700 my-0.5">Re-Buy</button>
-                                                    <button onclick="openModal('sell', 'Silvia Ruiz', 50000)" class="bg-success text-white text-xs px-2 py-1 rounded-lg hover:bg-success/80 my-0.5">Venta</button>
-                                                    <button onclick="openModal('cash-out', 'Silvia Ruiz', 50000)" class="bg-gold/80 text-[#1A1A1A] text-xs px-2 py-1 rounded-lg hover:bg-gold my-0.5">Cash Out</button>
-                                                </td>
-                                            </tr>
-                                            
+<div class="overflow-x-auto rounded-lg shadow-md border border-[#0B5345] bg-[#1A1A1A] p-2 -mx-2 sm:mx-0">
+    <table class="min-w-full text-left text-sm border-collapse">
+        <thead>
+            <tr class="uppercase text-xs font-bold text-[#B0B0B0] border-b border-gray-700">
+                <th class="p-3">JUGADOR</th>
+                <th class="p-3 text-center">STACK</th>
+                <th class="p-3 text-center">INVERSIÓN</th>
+                <th class="p-3 text-center">ESTADO</th>
+                <th class="p-3 text-center w-40">ACCIONES RÁPIDAS</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Jugador 1 -->
+            <tr class="border-b border-gray-800 hover:bg-[#242424] table-player-row">
+                <td class="p-3 text-success font-semibold whitespace-nowrap">
+                    Silvia Ruiz <span class="text-xs text-[#B0B0B0] block sm:inline">(#213)</span>
+                </td>
+                <td class="p-3 text-white font-mono text-center">$50,000</td>
+                <td class="p-3 text-white font-mono text-center">$50,000</td>
+                <td class="p-3 text-center">
+                    <span class="bg-primary-accent/50 text-primary-accent text-xs font-semibold px-2 py-1 rounded-full">PAGADO</span>
+                </td>
+                <td class="p-3 space-x-1 flex justify-center items-center flex-wrap">
+                    <button onclick="openModal('re-buy', 'Silvia Ruiz', 50000)" class="bg-blue-600 text-white text-xs px-2 py-1 rounded-lg hover:bg-blue-700 my-0.5">Re-Buy</button>
+                    <button onclick="openModal('sell', 'Silvia Ruiz', 50000)" class="bg-success text-white text-xs px-2 py-1 rounded-lg hover:bg-success/80 my-0.5">Venta</button>
+                    <button onclick="openModal('cash-out', 'Silvia Ruiz', 50000)" class="bg-gold/80 text-[#1A1A1A] text-xs px-2 py-1 rounded-lg hover:bg-gold my-0.5">Cash Out</button>
+                </td>
+            </tr>
 
-<tr class="border-b border-gray-800 hover:bg-[#242424] table-player-row">
-                                                <td class="p-3 text-gold font-semibold whitespace-nowrap">
-                                                    Andres Lopez <span class="text-xs text-[#B0B0B0] block sm:inline">(#088)</span>
-                                                </td>
-                                                <td class="p-3 text-white font-mono text-center">$45,000</td>
-                                                <td class="p-3 text-white font-mono text-center">$50,000</td>
-                                                <td class="p-3 text-center">
-                                                    <span class="bg-yellow-800/50 text-gold text-xs font-semibold px-2 py-1 rounded-full">DEBE</span>
-                                                </td>
-                                                <td class="p-3 space-x-1 flex justify-center items-center flex-wrap">
-                                                    <button onclick="openModal('re-buy', 'Andres Lopez', 45000)" class="bg-blue-600 text-white text-xs px-2 py-1 rounded-lg hover:bg-blue-700 my-0.5">Re-Buy</button>
-                                                    <button onclick="openModal('sell', 'Andres Lopez', 45000)" class="bg-success text-white text-xs px-2 py-1 rounded-lg hover:bg-success/80 my-0.5">Venta</button>
-                                                    <button onclick="openModal('cash-out', 'Andres Lopez', 45000)" class="bg-gold/80 text-[#1A1A1A] text-xs px-2 py-1 rounded-lg hover:bg-gold my-0.5">Cash Out</button>
-                                                </td>
-                                            </tr>
-                                            
+            <!-- Jugador 2 -->
+            <tr class="border-b border-gray-800 hover:bg-[#242424] table-player-row">
+                <td class="p-3 text-gold font-semibold whitespace-nowrap">
+                    Andres Lopez <span class="text-xs text-[#B0B0B0] block sm:inline">(#088)</span>
+                </td>
+                <td class="p-3 text-white font-mono text-center">$45,000</td>
+                <td class="p-3 text-white font-mono text-center">$50,000</td>
+                <td class="p-3 text-center">
+                    <span class="bg-yellow-800/50 text-gold text-xs font-semibold px-2 py-1 rounded-full">DEBE</span>
+                </td>
+                <td class="p-3 space-x-1 flex justify-center items-center flex-wrap">
+                    <button onclick="openModal('re-buy', 'Andres Lopez', 45000)" class="bg-blue-600 text-white text-xs px-2 py-1 rounded-lg hover:bg-blue-700 my-0.5">Re-Buy</button>
+                    <button onclick="openModal('sell', 'Andres Lopez', 45000)" class="bg-success text-white text-xs px-2 py-1 rounded-lg hover:bg-success/80 my-0.5">Venta</button>
+                    <button onclick="openModal('cash-out', 'Andres Lopez', 45000)" class="bg-gold/80 text-[#1A1A1A] text-xs px-2 py-1 rounded-lg hover:bg-gold my-0.5">Cash Out</button>
+                </td>
+            </tr>
 
-<tr class="border-b border-gray-800 hover:bg-[#242424] table-player-row">
-                                                <td class="p-3 text-white font-semibold whitespace-nowrap">
-                                                    Maria García <span class="text-xs text-[#B0B0B0] block sm:inline">(#345)</span>
-                                                </td>
-                                                <td class="p-3 text-white font-mono text-center">$72,000</td>
-                                                <td class="p-3 text-white font-mono text-center">$70,000</td>
-                                                <td class="p-3 text-center">
-                                                    <span class="bg-green-800/50 text-success text-xs font-semibold px-2 py-1 rounded-full">JUGANDO</span>
-                                                </td>
-                                                <td class="p-3 space-x-1 flex justify-center items-center flex-wrap">
-                                                    <button onclick="openModal('re-buy', 'Maria García', 72000)" class="bg-blue-600 text-white text-xs px-2 py-1 rounded-lg hover:bg-blue-700 my-0.5">Re-Buy</button>
-                                                    <button onclick="openModal('sell', 'Maria García', 72000)" class="bg-success text-white text-xs px-2 py-1 rounded-lg hover:bg-success/80 my-0.5">Venta</button>
-                                                    <button onclick="openModal('cash-out', 'Maria García', 72000)" class="bg-gold/80 text-[#1A1A1A] text-xs px-2 py-1 rounded-lg hover:bg-gold my-0.5">Cash Out</button>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+            <!-- Jugador 3 -->
+            <tr class="border-b border-gray-800 hover:bg-[#242424] table-player-row">
+                <td class="p-3 text-white font-semibold whitespace-nowrap">
+                    Maria García <span class="text-xs text-[#B0B0B0] block sm:inline">(#345)</span>
+                </td>
+                <td class="p-3 text-white font-mono text-center">$72,000</td>
+                <td class="p-3 text-white font-mono text-center">$70,000</td>
+                <td class="p-3 text-center">
+                    <span class="bg-green-800/50 text-success text-xs font-semibold px-2 py-1 rounded-full">JUGANDO</span>
+                </td>
+                <td class="p-3 space-x-1 flex justify-center items-center flex-wrap">
+                    <button onclick="openModal('re-buy', 'Maria García', 72000)" class="bg-blue-600 text-white text-xs px-2 py-1 rounded-lg hover:bg-blue-700 my-0.5">Re-Buy</button>
+                    <button onclick="openModal('sell', 'Maria García', 72000)" class="bg-success text-white text-xs px-2 py-1 rounded-lg hover:bg-success/80 my-0.5">Venta</button>
+                    <button onclick="openModal('cash-out', 'Maria García', 72000)" class="bg-gold/80 text-[#1A1A1A] text-xs px-2 py-1 rounded-lg hover:bg-gold my-0.5">Cash Out</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
                                 </div>
                             </div>
                         </div>
@@ -412,14 +414,47 @@
 
                     
 
-<div id="tab-jugador" class="tab-content">
+<div id="tab-jugador" class="tab-content" class="tab-content active">
                         <div class="grid lg:grid-cols-2 gap-8 md:gap-12 items-start">
-                            <div>
-                                <h3 class="text-2xl font-bold text-primary-accent mb-4">👤 Ficha de Jugador 360° (Player Hub)</h3>
-                                <p class="text-[#E0E0E0] text-base leading-relaxed mb-6">
-                                    Análisis completo: **Horas Reales de Juego**, **Historial de Mesas**, **Rendimiento (EV/ROI)**, **GTO-Compliance**, **Jackpots** y **Sistema de Fidelización VIP**. Datos reales, no sesiones ganadas, para evaluar el valor.
-                                </p>
-                            </div>
+<div class="bg-[#1A1A1A] p-6 rounded-lg shadow-md border border-[#0B5345]">
+    <h3 class="text-2xl font-bold text-primary-accent mb-4 flex items-center space-x-2">
+        <span>👤</span>
+        <span>Ficha de Jugador 360° (Player Hub)</span>
+    </h3>
+    <p class="text-[#E0E0E0] text-base leading-relaxed mb-6">
+        Accede a un <span class="text-gold font-semibold">análisis completo</span> de cada jugador: 
+    </p>
+    <ul class="list-none space-y-2 text-[#C0C0C0]">
+        <li class="flex items-center space-x-2">
+            <span class="text-red-500">❤️</span>
+            <span><span class="font-semibold text-white">Horas Reales de Juego</span> – Monitorea la actividad auténtica del jugador.</span>
+        </li>
+        <li class="flex items-center space-x-2">
+            <span class="text-black">♠️</span>
+            <span><span class="font-semibold text-white">Historial de Mesas</span> – Revisa el desempeño en distintas mesas.</span>
+        </li>
+        <li class="flex items-center space-x-2">
+            <span class="text-black">♣️</span>
+            <span><span class="font-semibold text-white">Rendimiento (EV/ROI)</span> – Evalúa resultados estratégicos y ganancias reales.</span>
+        </li>
+        <li class="flex items-center space-x-2">
+            <span class="text-red-500">♦️</span>
+            <span><span class="font-semibold text-white">GTO-Compliance</span> – Analiza la adherencia a estrategias óptimas.</span>
+        </li>
+        <li class="flex items-center space-x-2">
+            <span class="text-red-500">❤️</span>
+            <span><span class="font-semibold text-white">Jackpots</span> – Control de premios y ganancias extra.</span>
+        </li>
+        <li class="flex items-center space-x-2">
+            <span class="text-black">♠️</span>
+            <span><span class="font-semibold text-white">Sistema VIP</span> – Seguimiento de fidelización y recompensas.</span>
+        </li>
+    </ul>
+    <p class="text-[#A0A0A0] text-sm mt-4">
+        Datos reales basados en juego auténtico, no en sesiones ganadas, para evaluar el verdadero valor del jugador.
+    </p>
+</div>
+
                             
 
 <div class="bg-[#1A1A1A] p-6 rounded-xl shadow-2xl shadow-black/70 border border-gold transform hover:scale-[1.01] transition duration-300">
@@ -590,7 +625,7 @@
                     
                     
 
-<div id="tab-alertas" class="tab-content active">
+<div id="tab-alertas" >
                         <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
                             <div>
                                 <h3 class="text-2xl font-bold text-primary-accent mb-4">🔔 Notificaciones Inteligentes (Smart Alerts)</h3>
